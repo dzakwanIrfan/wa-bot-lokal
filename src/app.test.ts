@@ -294,16 +294,18 @@ test("quiz ingress is FIFO per group and runs before mention lookup", async () =
   await routeMessage(message("/unknown", "quiz-command") as never);
   assert.deepEqual(started, ["first", "second", "lifecycle"]);
 
-  assert.equal(shouldIgnoreOwnGroupText(true, "web"), true);
-  assert.equal(shouldIgnoreOwnGroupText(true, "android"), false);
-  assert.equal(shouldIgnoreOwnGroupText(true, "ios"), false);
-  assert.equal(shouldIgnoreOwnGroupText(false, "web"), false);
+  assert.equal(shouldIgnoreOwnGroupText(true, undefined), true);
+  assert.equal(
+    shouldIgnoreOwnGroupText(true, "98195971539008:49@lid"),
+    false,
+  );
+  assert.equal(shouldIgnoreOwnGroupText(false, undefined), false);
 
   await routeMessage({
-    ...message("mobile answer", "quiz-mobile"),
+    ...message("MacBook answer", "3BE95D7025B2228D7628"),
     fromMe: true,
-    author: undefined,
-    deviceType: "android",
+    author: "98195971539008:49@lid",
+    deviceType: "web",
   } as never);
   await routeMessage({
     ...message("bot output", "quiz-bot"),
@@ -311,7 +313,7 @@ test("quiz ingress is FIFO per group and runs before mention lookup", async () =
     author: undefined,
     deviceType: "web",
   } as never);
-  assert.equal(started.includes("mobile answer"), true);
+  assert.equal(started.includes("MacBook answer"), true);
   assert.equal(started.includes("bot output"), false);
 
   let participantWhatsAppId = "";
@@ -328,7 +330,7 @@ test("quiz ingress is FIFO per group and runs before mention lookup", async () =
   const ownResult = await ownAccountHandler({
     ...message("own answer", "own-answer"),
     fromMe: true,
-    author: undefined,
+    author: "98195971539008:49@lid",
     id: {
       fromMe: true,
       remote: groupId,

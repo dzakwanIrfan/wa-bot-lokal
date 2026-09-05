@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-05T08:49:17.579648+00:00",
+  "generated_at": "2026-09-05T09:34:28.860486+00:00",
   "nodes": {
     "package_scripts_start": {
       "code_fingerprint": "52b01674e56ad1513b6c3306f8742511f46905489ee009f3be001a5f199f1dd5",
@@ -12,13 +12,13 @@
           "q": "bagaimana cara menjalankannya setelah error database wa_bot does not exist"
         }
       ],
-      "score": 0.99988853,
+      "score": 0.999163828,
       "source_file": "package.json",
       "status": "tentative",
       "uses": 1
     },
     "readme_environment_configuration": {
-      "code_fingerprint": "a15ca7a4cab12cd5b2bfe48abe647c83989ce250325b37e3b3280e032c50949b",
+      "code_fingerprint": "61b9e39ad77729f7a3bf1ebc055a7fde2e1236f7c143d280e15ba239c1b59282",
       "label": "Environment Configuration",
       "last": "2026-09-05T08:42:20.717284+00:00",
       "provenance": [
@@ -48,13 +48,13 @@
           "q": "Execute the approved WhatsApp writing style prompt using the attached style context document"
         }
       ],
-      "score": 6.976028142,
+      "score": 6.97097204,
       "source_file": "README.md",
       "status": "preferred",
       "uses": 7
     },
     "readme_local_linked_session": {
-      "code_fingerprint": "a15ca7a4cab12cd5b2bfe48abe647c83989ce250325b37e3b3280e032c50949b",
+      "code_fingerprint": "61b9e39ad77729f7a3bf1ebc055a7fde2e1236f7c143d280e15ba239c1b59282",
       "label": "Local Linked WhatsApp Session",
       "last": "2026-09-05T07:07:15.187675+00:00",
       "provenance": [
@@ -64,13 +64,13 @@
           "q": "Analisis teknis dan rekomendasiku untuk setiap poin keputusan tersebut"
         }
       ],
-      "score": 0.998364102,
+      "score": 0.997640506,
       "source_file": "README.md",
       "status": "tentative",
       "uses": 1
     },
     "readme_whitelisted_direct_text_routing": {
-      "code_fingerprint": "a15ca7a4cab12cd5b2bfe48abe647c83989ce250325b37e3b3280e032c50949b",
+      "code_fingerprint": "61b9e39ad77729f7a3bf1ebc055a7fde2e1236f7c143d280e15ba239c1b59282",
       "label": "Whitelisted Direct Text Routing",
       "last": "2026-09-05T04:09:25.333949+00:00",
       "provenance": [
@@ -80,7 +80,7 @@
           "q": "gimana cara masukin id grup whatsapp juga?"
         }
       ],
-      "score": 0.99551952,
+      "score": 0.994797986,
       "source_file": "README.md",
       "status": "tentative",
       "uses": 1
@@ -116,7 +116,7 @@
           "q": "lanjut tambahkan fitur membuat sticker dari gambar menggunakan command /sticker lalu untuk REPLY_STYLE_PROMPT lebih baik jangan masukin .env, bikin file sendiri aja biar user bisa menuliskannya dengan enak dan lengkap. sesuaikan dengan md terlampir"
         }
       ],
-      "score": 8.971484756,
+      "score": 8.964982384,
       "source_file": "src/config.ts",
       "status": "preferred",
       "uses": 9
@@ -137,7 +137,7 @@
           "q": "Why does pnpm start report Missing required environment variable TARGET_PHONE_NUMBERS?"
         }
       ],
-      "score": 1.990799664,
+      "score": 1.989356768,
       "source_file": "src/config.ts",
       "status": "preferred",
       "uses": 2
@@ -158,7 +158,7 @@
           "q": "Add AI prompt engineering so WhatsApp replies match the user's language and typing style"
         }
       ],
-      "score": 1.990829541,
+      "score": 1.989386623,
       "source_file": "src/gemini.ts",
       "status": "preferred",
       "uses": 2
@@ -179,17 +179,27 @@
           "q": "Add AI prompt engineering so WhatsApp replies match the user's language and typing style"
         }
       ],
-      "score": 1.990829541,
+      "score": 1.989386623,
       "source_file": "src/gemini.ts",
       "status": "preferred",
       "uses": 2
     },
     "src_index_client": {
-      "code_fingerprint": "6d491f0b3ef1c06cf67b8a77ae37850bec29af98bf9fdbc28a63900339d539a7",
+      "code_fingerprint": "327daaa5e74f4974e01e28fe759671bab15bc583b6f8202ae657144dbe4ffa59",
       "label": "client",
-      "last": "2026-09-05T06:14:56.347690+00:00",
+      "last": "2026-09-05T09:06:53.034730+00:00",
       "neg": 1,
       "provenance": [
+        {
+          "date": "2026-09-05T09:06:53.034730+00:00",
+          "outcome": "useful",
+          "q": "saat boss timeout, langsung end aja execute! btw aku sudah melakukan migrations 001-004 dan verifikasi schema berhasil"
+        },
+        {
+          "date": "2026-09-05T08:50:53.091506+00:00",
+          "outcome": "useful",
+          "q": "banyak bug. berarti kuis ini tidak bisa dijawab oleh semua anggota grup dalam satu waktu? harus bergantian?"
+        },
         {
           "date": "2026-09-05T06:14:56.347690+00:00",
           "outcome": "corrected",
@@ -204,26 +214,16 @@
           "date": "2026-09-05T06:07:58.490416+00:00",
           "outcome": "useful",
           "q": "execute! perbaiki image sticker"
-        },
-        {
-          "date": "2026-09-05T05:59:21.538016+00:00",
-          "outcome": "useful",
-          "q": "Image sticker generation failed: r"
-        },
-        {
-          "date": "2026-09-05T05:51:49.698299+00:00",
-          "outcome": "useful",
-          "q": "execute! implement image sticker and prompt file"
         }
       ],
-      "score": 8.968491774,
+      "score": 10.960849612,
       "source_file": "src/index.ts",
       "status": "contested",
-      "uses": 10,
+      "uses": 12,
       "verdict": "useful"
     },
     "src_index_gemini": {
-      "code_fingerprint": "6d491f0b3ef1c06cf67b8a77ae37850bec29af98bf9fdbc28a63900339d539a7",
+      "code_fingerprint": "327daaa5e74f4974e01e28fe759671bab15bc583b6f8202ae657144dbe4ffa59",
       "label": "gemini",
       "last": "2026-09-05T08:29:50.497586+00:00",
       "provenance": [
@@ -233,7 +233,7 @@
           "q": "execute! selesaikan semuanya!"
         }
       ],
-      "score": 0.99968795,
+      "score": 0.998963394,
       "source_file": "src/index.ts",
       "status": "tentative",
       "uses": 1
@@ -249,17 +249,27 @@
           "q": "Design Phase 1 architecture and precise PostgreSQL schema for a high-concurrency multiplayer WhatsApp quiz with First Blood, strict and chaos modes, boss raids, generated question batches, seasons, and leaderboard locking."
         }
       ],
-      "score": 0.998234792,
+      "score": 0.997511289,
       "source_file": "src/memory.ts",
       "status": "tentative",
       "uses": 1
     },
     "src_router_commandhandler": {
-      "code_fingerprint": "641f140d3db6f286f0832e406d59c354806c140903271c208d72d641db68a968",
+      "code_fingerprint": "6d2376ac504862b1bf45302f02821c17a9c78891461fa8faa82377d9820a3a06",
       "label": "CommandHandler",
-      "last": "2026-09-05T08:29:50.497586+00:00",
+      "last": "2026-09-05T09:06:53.034730+00:00",
       "neg": 1,
       "provenance": [
+        {
+          "date": "2026-09-05T09:06:53.034730+00:00",
+          "outcome": "useful",
+          "q": "saat boss timeout, langsung end aja execute! btw aku sudah melakukan migrations 001-004 dan verifikasi schema berhasil"
+        },
+        {
+          "date": "2026-09-05T08:50:53.091506+00:00",
+          "outcome": "useful",
+          "q": "banyak bug. berarti kuis ini tidak bisa dijawab oleh semua anggota grup dalam satu waktu? harus bergantian?"
+        },
         {
           "date": "2026-09-05T08:29:50.497586+00:00",
           "outcome": "useful",
@@ -274,30 +284,25 @@
           "date": "2026-09-05T07:46:40.995438+00:00",
           "outcome": "useful",
           "q": "execute! continue!"
-        },
-        {
-          "date": "2026-09-05T07:07:15.187675+00:00",
-          "outcome": "useful",
-          "q": "Analisis teknis dan rekomendasiku untuk setiap poin keputusan tersebut"
-        },
-        {
-          "date": "2026-09-05T06:59:10.810586+00:00",
-          "outcome": "useful",
-          "q": "Design Phase 1 architecture and precise PostgreSQL schema for a high-concurrency multiplayer WhatsApp quiz with First Blood, strict and chaos modes, boss raids, generated question batches, seasons, and leaderboard locking."
         }
       ],
-      "score": 13.967226541,
+      "score": 15.955961385,
       "source_file": "src/router.ts",
       "status": "contested",
-      "uses": 15,
+      "uses": 17,
       "verdict": "useful"
     },
     "src_router_createmessagerouter": {
-      "code_fingerprint": "641f140d3db6f286f0832e406d59c354806c140903271c208d72d641db68a968",
+      "code_fingerprint": "6d2376ac504862b1bf45302f02821c17a9c78891461fa8faa82377d9820a3a06",
       "label": "createMessageRouter()",
-      "last": "2026-09-05T08:29:50.497586+00:00",
+      "last": "2026-09-05T08:50:53.091506+00:00",
       "neg": 1,
       "provenance": [
+        {
+          "date": "2026-09-05T08:50:53.091506+00:00",
+          "outcome": "useful",
+          "q": "banyak bug. berarti kuis ini tidak bisa dijawab oleh semua anggota grup dalam satu waktu? harus bergantian?"
+        },
         {
           "date": "2026-09-05T08:29:50.497586+00:00",
           "outcome": "useful",
@@ -317,21 +322,16 @@
           "date": "2026-09-05T07:07:15.187675+00:00",
           "outcome": "useful",
           "q": "Analisis teknis dan rekomendasiku untuk setiap poin keputusan tersebut"
-        },
-        {
-          "date": "2026-09-05T06:59:10.810586+00:00",
-          "outcome": "useful",
-          "q": "Design Phase 1 architecture and precise PostgreSQL schema for a high-concurrency multiplayer WhatsApp quiz with First Blood, strict and chaos modes, boss raids, generated question batches, seasons, and leaderboard locking."
         }
       ],
-      "score": 16.954118825,
+      "score": 17.941131522,
       "source_file": "src/router.ts",
       "status": "contested",
-      "uses": 18,
+      "uses": 19,
       "verdict": "useful"
     },
     "src_router_isdirectchatid": {
-      "code_fingerprint": "641f140d3db6f286f0832e406d59c354806c140903271c208d72d641db68a968",
+      "code_fingerprint": "6d2376ac504862b1bf45302f02821c17a9c78891461fa8faa82377d9820a3a06",
       "label": "isDirectChatId()",
       "last": "2026-09-05T04:25:39.415164+00:00",
       "provenance": [
@@ -351,7 +351,7 @@
           "q": "gimana cara masukin id grup whatsapp juga?"
         }
       ],
-      "score": 2.986892283,
+      "score": 2.984727437,
       "source_file": "src/router.ts",
       "status": "preferred",
       "uses": 3
@@ -359,8 +359,18 @@
     "src_whatsapp": {
       "code_fingerprint": "426f04e7482fbff25e0660617007ca1798601e52673443215305aaa2d88518cc",
       "label": "whatsapp.ts",
-      "last": "2026-09-05T08:29:50.497586+00:00",
+      "last": "2026-09-05T09:06:53.034730+00:00",
       "provenance": [
+        {
+          "date": "2026-09-05T09:06:53.034730+00:00",
+          "outcome": "useful",
+          "q": "saat boss timeout, langsung end aja execute! btw aku sudah melakukan migrations 001-004 dan verifikasi schema berhasil"
+        },
+        {
+          "date": "2026-09-05T08:50:53.091506+00:00",
+          "outcome": "useful",
+          "q": "banyak bug. berarti kuis ini tidak bisa dijawab oleh semua anggota grup dalam satu waktu? harus bergantian?"
+        },
         {
           "date": "2026-09-05T08:29:50.497586+00:00",
           "outcome": "useful",
@@ -375,17 +385,12 @@
           "date": "2026-09-05T07:46:40.995438+00:00",
           "outcome": "useful",
           "q": "execute! continue!"
-        },
-        {
-          "date": "2026-09-05T07:07:15.187675+00:00",
-          "outcome": "useful",
-          "q": "Analisis teknis dan rekomendasiku untuk setiap poin keputusan tersebut"
         }
       ],
-      "score": 3.996416124,
+      "score": 5.992377634,
       "source_file": "src/whatsapp.ts",
       "status": "preferred",
-      "uses": 4
+      "uses": 6
     },
     "src_whatsapp_createwhatsappclient": {
       "code_fingerprint": "426f04e7482fbff25e0660617007ca1798601e52673443215305aaa2d88518cc",
@@ -398,7 +403,7 @@
           "q": "hanya saat di-mention saja. lalu ajari aku cara mendapatkan id group nya"
         }
       ],
-      "score": 0.995593889,
+      "score": 0.9948723,
       "source_file": "src/whatsapp.ts",
       "status": "tentative",
       "uses": 1

@@ -39,9 +39,9 @@ export function createQuizGroupTextHandler(
   selfWhatsAppId?: () => string | undefined,
 ) {
   return async (message: Message, groupId: string, receivedAt: Date) => {
-    const participantWhatsAppId =
-      message.author?.trim() ||
-      (message.fromMe ? selfWhatsAppId?.()?.trim() : undefined);
+    const participantWhatsAppId = message.fromMe
+      ? selfWhatsAppId?.()?.trim()
+      : message.author?.trim();
     const whatsappMessageId = serializedMessageId(message).trim();
 
     if (
