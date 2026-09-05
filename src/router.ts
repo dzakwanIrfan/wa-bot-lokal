@@ -18,12 +18,24 @@ export type CommandHandler = (
   conversationId: string,
 ) => Promise<void>;
 
+export type GroupTextResult = Readonly<{
+  handled: boolean;
+  afterCommit?: () => Promise<void>;
+}>;
+
+export type GroupTextHandler = (
+  message: Message,
+  groupId: string,
+  receivedAt: Date,
+) => Promise<GroupTextResult>;
+
 type RouterDependencies = Readonly<{
   targetPhoneNumbers: ReadonlySet<string>;
   targetGroupIds: ReadonlySet<string>;
   memory: ConversationMemory;
   gemini: GeminiService;
   groupCommands?: ReadonlyMap<string, CommandHandler>;
+  groupTextHandler?: GroupTextHandler;
 }>;
 
 export function shouldRouteMessage(
@@ -101,23 +113,28 @@ export function createMessageRouter({
   memory,
   gemini,
   groupCommands = new Map(),
+  groupTextHandler,
 }: RouterDependencies) {
-  const queues = new Map<string, Promise<void>>();
+  const queues = new Map<string, Promise<unknown>>();
+  const quizQueues = new Map<string, Promise<unknown>>();
 
-  function enqueue(
+  function enqueue<T>(
+    target: Map<string, Promise<unknown>>,
     conversationId: string,
-    task: () => Promise<void>,
-  ): Promise<void> {
-    const previous = queues.get(conversationId) ?? Promise.resolve();
+    task: () => Promise<T>,
+  ): Promise<T> {
+    const previous = target.get(conversationId) ?? Promise.resolve();
     const current = previous.catch(() => undefined).then(task);
-    queues.set(conversationId, current);
+    target.set(conversationId, current);
 
     return current.finally(() => {
-      if (queues.get(conversationId) === current) queues.delete(conversationId);
+      if (target.get(conversationId) === current) target.delete(conversationId);
     });
   }
 
   return async function routeMessage(message: Message): Promise<void> {
+    const receivedAt = new Date();
+
     if (message.isStatus || message.broadcast) {
       return;
     }
@@ -136,12 +153,27 @@ export function createMessageRouter({
         const commandName = commandNameFromText(text);
         const command = commandName ? groupCommands.get(commandName) : undefined;
         if (command) {
-          await enqueue(chatId, () => command(message, chatId));
+          await enqueue(queues, chatId, () => command(message, chatId));
           return;
         }
 
         if (message.type !== "chat") return;
         if (message.fromMe) return;
+
+        if (!commandName && groupTextHandler) {
+          const result = await enqueue(quizQueues, chatId, () =>
+            groupTextHandler(message, chatId, receivedAt),
+          );
+          if (result.handled) {
+            if (result.afterCommit) {
+              void result.afterCommit().catch((error: unknown) => {
+                console.error(`Quiz reply delivery failed: ${errorSummary(error)}`);
+              });
+            }
+            return;
+          }
+        }
+
         if (message.mentionedIds.length === 0) return;
 
         const isBotMentioned = (await message.getMentions()).some(
@@ -188,7 +220,7 @@ export function createMessageRouter({
         conversationId = phoneNumber;
       }
 
-      await enqueue(conversationId, async () => {
+      await enqueue(queues, conversationId, async () => {
         memory.add(conversationId, { role: "user", text: memoryText });
 
         try {

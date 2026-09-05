@@ -2,9 +2,9 @@ import type { Message, MessageMedia } from "whatsapp-web.js";
 
 type CompatibleMessageId = Message["id"] & { $1?: string };
 
-function ensureSerializedMessageId(message: Message): void {
+export function serializedMessageId(message: Message): string {
   const id = message.id as CompatibleMessageId;
-  if (id._serialized) return;
+  if (id._serialized) return id._serialized;
 
   const serialized =
     id.$1 ??
@@ -14,12 +14,13 @@ function ensureSerializedMessageId(message: Message): void {
   if (!serialized) throw new Error("Message ID cannot be serialized.");
 
   id._serialized = serialized;
+  return serialized;
 }
 
 export async function imageMediaFromCommand(
   message: Message,
 ): Promise<MessageMedia | null> {
-  ensureSerializedMessageId(message);
+  serializedMessageId(message);
 
   const source = message.hasMedia
     ? message
@@ -28,7 +29,7 @@ export async function imageMediaFromCommand(
       : null;
 
   if (!source?.hasMedia) return null;
-  ensureSerializedMessageId(source);
+  serializedMessageId(source);
 
   const media = await source.downloadMedia();
   return media?.mimetype.startsWith("image/") ? media : null;

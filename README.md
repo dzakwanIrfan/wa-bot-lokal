@@ -97,8 +97,15 @@ unset QUIZ_DATABASE_URL
 ```
 
 The verification runs inside a transaction and rolls back its fixture data.
-Phase 1 does not connect WhatsApp commands to PostgreSQL; that ingress and First
-Blood evaluator belong to Phase 2.
+With `DATABASE_URL` configured, Phase 2 validates the schema on startup and
+routes non-command text from target groups into a dedicated FIFO evaluator. It
+supports Strict attempts, Chaos 10/5 scoring, First Blood row locking, Boss
+progress/reset/bonus, leaderboard updates, and transactional outbox writes.
+Without `DATABASE_URL`, these quiz paths are disabled and the existing bot
+features continue to run.
+
+Session creation and automatic question rotation are not part of Phase 2 yet;
+the evaluator only consumes answers for a running session with an open round.
 
 ## Verify and run
 

@@ -9,6 +9,11 @@ import {
 import { buildSystemInstruction, withTransientRetry } from "./gemini.js";
 import { imageMediaFromCommand } from "./media.js";
 import { createConversationMemory } from "./memory.js";
+import {
+  evaluateQuizAnswer,
+  levenshteinDistance,
+  normalizeQuizAnswer,
+} from "./modules/quiz/domain/answer.js";
 import { createRemoveBackgroundCommand } from "./remove-bg-handler.js";
 import {
   commandNameFromText,
@@ -112,6 +117,111 @@ test("custom writing style extends the trusted system instruction", () => {
   });
   assert.match(config.replyStylePrompt, /bahasa Indonesia casual/);
   assert.doesNotMatch(config.replyStylePrompt, /this env value must be ignored/);
+  assert.equal(config.databaseUrl, null);
+});
+
+test("quiz answer matching is normalized, bounded, and typo-aware", () => {
+  assert.equal(normalizeQuizAnswer("  JAKARTA\nSelatan  "), "jakarta selatan");
+  assert.equal(levenshteinDistance("jakrta", "jakarta"), 1);
+  assert.deepEqual(
+    evaluateQuizAnswer("  DUA ", {
+      canonicalAnswer: "2",
+      acceptedAnswers: ["dua"],
+      maxLevenshteinDistance: 0,
+    }),
+    {
+      normalizedAnswer: "dua",
+      isCorrect: true,
+      levenshteinDistance: 0,
+    },
+  );
+  assert.equal(
+    evaluateQuizAnswer("jakrta", {
+      canonicalAnswer: "jakarta",
+      acceptedAnswers: [],
+      maxLevenshteinDistance: 1,
+    }).isCorrect,
+    true,
+  );
+  assert.equal(
+    evaluateQuizAnswer("x".repeat(201), {
+      canonicalAnswer: "x",
+      acceptedAnswers: [],
+      maxLevenshteinDistance: 5,
+    }).isCorrect,
+    false,
+  );
+});
+
+test("quiz ingress is FIFO per group and runs before mention lookup", async () => {
+  const groupId = "120363022657003836@g.us";
+  const started: string[] = [];
+  const delivered: string[] = [];
+  let releaseFirst!: () => void;
+  let releaseFirstDelivery!: () => void;
+  const firstGate = new Promise<void>((resolve) => {
+    releaseFirst = resolve;
+  });
+  const firstDeliveryGate = new Promise<void>((resolve) => {
+    releaseFirstDelivery = resolve;
+  });
+  const routeMessage = createMessageRouter({
+    targetPhoneNumbers: new Set(),
+    targetGroupIds: new Set([groupId]),
+    memory: createConversationMemory(2),
+    gemini: {
+      generateReply: async () => {
+        throw new Error("Gemini must not run for a quiz attempt.");
+      },
+    },
+    groupTextHandler: async (message, receivedGroupId, receivedAt) => {
+      assert.equal(receivedGroupId, groupId);
+      assert.equal(receivedAt instanceof Date, true);
+      started.push(message.body);
+      if (message.body === "first") await firstGate;
+
+      return {
+        handled: true,
+        afterCommit: async () => {
+          if (message.body === "first") await firstDeliveryGate;
+          delivered.push(message.body);
+        },
+      };
+    },
+  });
+  const message = (body: string, id: string) =>
+    ({
+      fromMe: false,
+      isStatus: false,
+      broadcast: false,
+      type: "chat",
+      from: groupId,
+      author: "628123456789@c.us",
+      id: { remote: groupId, _serialized: id },
+      body,
+      mentionedIds: [],
+      getMentions: async () => {
+        throw new Error("Mention lookup must not run for a handled quiz attempt.");
+      },
+    }) as never;
+
+  const first = routeMessage(message("first", "quiz-first"));
+  const second = routeMessage(message("second", "quiz-second"));
+  await new Promise<void>((resolve) => setImmediate(resolve));
+  assert.deepEqual(started, ["first"]);
+
+  releaseFirst();
+  await Promise.all([first, second]);
+  await new Promise<void>((resolve) => setImmediate(resolve));
+  assert.deepEqual(started, ["first", "second"]);
+  assert.equal(delivered.includes("first"), false);
+
+  releaseFirstDelivery();
+  await new Promise<void>((resolve) => setImmediate(resolve));
+  assert.deepEqual(delivered.toSorted(), ["first", "second"]);
+
+  await routeMessage(message("/unknown", "quiz-command"));
+  assert.deepEqual(started, ["first", "second"]);
 });
 
 test("text sticker command is quoted, bounded, and routes without a mention", async () => {
