@@ -111,8 +111,11 @@ try {
     memory,
     gemini,
     groupTextHandler: quizEngine
-      ? createQuizGroupTextHandler(quizEngine, (groupId, outcome) =>
-          quizRuntime?.afterAttempt(groupId, outcome) ?? Promise.resolve(),
+      ? createQuizGroupTextHandler(
+          quizEngine,
+          (groupId, outcome) =>
+            quizRuntime?.afterAttempt(groupId, outcome) ?? Promise.resolve(),
+          () => client.info?.wid._serialized,
         )
       : undefined,
     quizTaskQueue,

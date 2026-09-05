@@ -25,6 +25,9 @@ export type QuizStartResult =
   | Readonly<{ kind: "questions-queued"; missing: number; batchId: string }>;
 
 export type QuizControlResult = "updated" | "already-set" | "no-active";
+export type QuizStopResult =
+  | Readonly<{ kind: "stopped"; outboxIds: readonly string[] }>
+  | Readonly<{ kind: "no-active" }>;
 
 type SessionRow = Readonly<{
   id: string;
@@ -168,7 +171,7 @@ async function queueBatch(
       INSERT INTO quiz.generation_batches (
         group_id, topic, requested_difficulty, group_win_rate,
         requested_count, model_name, prompt_version
-      ) VALUES ($1, $2, $3, $4, $5, $6, 'quiz-v1')
+      ) VALUES ($1, $2, $3, $4, $5, $6, 'quiz-v2')
       RETURNING id::text
     `,
     [
@@ -255,6 +258,7 @@ export class PostgresQuizGame {
           SELECT count(*)::text AS count
           FROM quiz.questions
           WHERE status = 'ready' AND difficulty = $1
+            AND (source = 'manual' OR quality_version >= 2)
             AND ($2 = 'campuran' OR lower(topic) = $2)
         `,
         [adaptive.difficulty, request.topic],
@@ -425,6 +429,62 @@ export class PostgresQuizGame {
     });
   }
 
+  async stop(groupId: string): Promise<QuizStopResult> {
+    return transaction(this.pool, async (client) => {
+      const sessionResult = await client.query<{ id: string }>(
+        `
+          SELECT id::text FROM quiz.quiz_sessions
+          WHERE group_id = $1 AND status IN ('running', 'paused')
+          ORDER BY id DESC LIMIT 1 FOR UPDATE
+        `,
+        [groupId],
+      );
+      const sessionId = sessionResult.rows[0]?.id;
+      if (!sessionId) return { kind: "no-active" };
+
+      await client.query(
+        `
+          UPDATE quiz.quiz_rounds
+          SET status = 'cancelled', closed_at = clock_timestamp()
+          WHERE session_id = $1 AND status IN ('pending', 'open')
+        `,
+        [sessionId],
+      );
+      await client.query(
+        `
+          UPDATE quiz.boss_raids
+          SET status = 'cancelled', ended_at = clock_timestamp()
+          WHERE session_id = $1 AND status = 'active'
+        `,
+        [sessionId],
+      );
+      await client.query(
+        `
+          UPDATE quiz.quiz_sessions
+          SET status = 'cancelled', ended_at = clock_timestamp()
+          WHERE id = $1
+        `,
+        [sessionId],
+      );
+      await client.query(
+        `
+          INSERT INTO quiz.session_events (event_key, session_id, event_type)
+          VALUES ($1, $2, 'session_cancelled')
+        `,
+        [`session-cancelled:${sessionId}`, sessionId],
+      );
+      const message = "⏹️ Kuis dihentikan oleh admin.";
+      const outboxId = await insertOutbox(
+        client,
+        `session-cancelled:${sessionId}`,
+        sessionId,
+        "quiz.session_cancelled",
+        { groupId, message },
+      );
+      return { kind: "stopped", outboxIds: [outboxId] };
+    });
+  }
+
   async groupsNeedingAdvance(): Promise<readonly string[]> {
     const result = await this.pool.query<{ group_id: string }>(
       `
@@ -494,32 +554,34 @@ export class PostgresQuizGame {
           `,
           [`round-expired:${current.id}`, session.id, current.id],
         );
+        let bossEnded = false;
         if (current.boss_raid_id) {
-          const reset = await client.query(
+          const ended = await client.query(
             `
               UPDATE quiz.boss_raids
-              SET current_streak = 0, reset_count = reset_count + 1
-              WHERE id = $1 AND status = 'active' AND current_streak > 0
+              SET status = 'expired', ended_at = clock_timestamp()
+              WHERE id = $1 AND status = 'active'
               RETURNING id
             `,
             [current.boss_raid_id],
           );
-          if (reset.rowCount) {
+          if (ended.rowCount) {
             await client.query(
               `
                 INSERT INTO quiz.session_events (
                   event_key, session_id, round_id, event_type, payload
-                ) VALUES ($1, $2, $3, 'boss_progress_reset', '{"reason":"deadline"}'::jsonb)
+                ) VALUES ($1, $2, $3, 'boss_expired', '{"reason":"deadline"}'::jsonb)
                 ON CONFLICT (event_key) DO NOTHING
               `,
-              [`boss-timeout-reset:${current.id}`, session.id, current.id],
+              [`boss-expired:${current.id}`, session.id, current.id],
             );
+            bossEnded = true;
           }
         }
         const timeoutMessage = [
           `⏰ Waktu habis. Jawabannya: *${current.canonical_answer}*`,
           current.explanation,
-          current.boss_raid_id ? "Progress Boss kembali ke 0." : null,
+          bossEnded ? "💀 Boss Raid berakhir. Kuis lanjut ke soal normal." : null,
         ].filter(Boolean).join("\n");
         messages.push(timeoutMessage);
         outboxIds.push(await insertOutbox(
@@ -660,8 +722,8 @@ export class PostgresQuizGame {
             INSERT INTO quiz.questions (
               generation_batch_id, topic, difficulty, question_text,
               canonical_answer, accepted_answers, max_levenshtein_distance,
-              explanation, persona_prompt
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+              explanation, persona_prompt, quality_version
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 2)
           `,
           [
             batch.id,
@@ -818,6 +880,7 @@ export class PostgresQuizGame {
         SELECT question.id::text, question.question_text, question.persona_prompt
         FROM quiz.questions AS question
         WHERE question.status = 'ready' AND question.difficulty = $2
+          AND (question.source = 'manual' OR question.quality_version >= 2)
           AND ($3 = 'campuran' OR lower(question.topic) = $3)
           AND NOT EXISTS (
             SELECT 1 FROM quiz.quiz_rounds AS used

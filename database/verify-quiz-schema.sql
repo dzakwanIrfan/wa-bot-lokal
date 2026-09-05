@@ -14,6 +14,14 @@ DECLARE
   chaos_round_id BIGINT;
   boss_raid_id BIGINT;
 BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'quiz' AND table_name = 'questions'
+      AND column_name = 'quality_version'
+  ) THEN
+    RAISE EXCEPTION 'missing questions.quality_version from migration 005';
+  END IF;
+
   INSERT INTO quiz.seasons (name, starts_at, ends_at)
   VALUES (
     'schema verification',
@@ -245,6 +253,9 @@ BEGIN
   INSERT INTO quiz.boss_raids (session_id, ordinal)
   VALUES (chaos_session_id, 1)
   RETURNING id INTO boss_raid_id;
+
+  INSERT INTO quiz.session_events (event_key, session_id, event_type)
+  VALUES ('verify:boss-expired', chaos_session_id, 'boss_expired');
 
   INSERT INTO quiz.boss_raid_contributors (boss_raid_id, participant_id)
   VALUES (boss_raid_id, participant_two);

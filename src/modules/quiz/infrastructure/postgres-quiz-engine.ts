@@ -206,26 +206,26 @@ export class PostgresQuizEngine {
           "round_closed",
           { reason: "deadline" },
         );
-        let bossReset = false;
-        if (boss && boss.current_streak > 0) {
+        let bossEnded = false;
+        if (boss) {
           await client.query(
             `
               UPDATE quiz.boss_raids
-              SET current_streak = 0, reset_count = reset_count + 1
+              SET status = 'expired', ended_at = clock_timestamp()
               WHERE id = $1
             `,
             [boss.id],
           );
           await insertSessionEvent(
             client,
-            `boss-timeout-reset:${round.id}`,
+            `boss-expired:${round.id}`,
             session.id,
             round.id,
             null,
-            "boss_progress_reset",
-            { previousProgress: boss.current_streak, reason: "deadline" },
+            "boss_expired",
+            { progress: boss.current_streak, reason: "deadline" },
           );
-          bossReset = true;
+          bossEnded = true;
         }
         const outboxIds = await insertOutbox(
           client,
@@ -238,7 +238,7 @@ export class PostgresQuizEngine {
         return commit(client, {
           handled: true,
           kind: "expired",
-          bossReset,
+          bossEnded,
           bossRequired: boss?.required_correct_answers,
           outboxIds,
         });

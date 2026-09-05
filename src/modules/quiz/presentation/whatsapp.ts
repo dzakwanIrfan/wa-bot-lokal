@@ -10,6 +10,9 @@ function replyFor(outcome: QuizAttemptOutcome): string | null {
   if (outcome.kind === "already-attempted") {
     return "Mode Strict: kamu sudah memakai 1 kesempatan untuk soal ini.";
   }
+  if (outcome.kind === "expired" && outcome.bossEnded) {
+    return "⏰ Waktu Boss habis. Boss Raid berakhir.";
+  }
   if (outcome.kind === "expired") {
     return "⏰ Waktu untuk soal ini sudah habis.";
   }
@@ -33,9 +36,12 @@ function replyFor(outcome: QuizAttemptOutcome): string | null {
 export function createQuizGroupTextHandler(
   engine: PostgresQuizEngine,
   afterAttempt?: (groupId: string, outcome: QuizAttemptOutcome) => Promise<void>,
+  selfWhatsAppId?: () => string | undefined,
 ) {
   return async (message: Message, groupId: string, receivedAt: Date) => {
-    const participantWhatsAppId = message.author?.trim();
+    const participantWhatsAppId =
+      message.author?.trim() ||
+      (message.fromMe ? selfWhatsAppId?.()?.trim() : undefined);
     const whatsappMessageId = serializedMessageId(message).trim();
 
     if (

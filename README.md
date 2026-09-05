@@ -98,14 +98,20 @@ The quiz engine only runs in groups listed by `TARGET_GROUP_IDS`:
 /klasemen
 /pause
 /resume
+/stop
 ```
 
-`/pause` and `/resume` are restricted to group admins (the linked account is
-also allowed). Strict mode accepts one attempt per participant per question.
+`/pause`, `/resume`, and `/stop` are restricted to group admins (the linked
+account is also allowed). Strict mode accepts one attempt per participant per question.
 Chaos accepts unlimited attempts but awards each participant at most once per
 question: 10 points for First Blood and 5 for later correct answers. Boss Raids
-are collaborative, reset on an incorrect answer or timeout, require three
-consecutive correct answers, and award every contributor a 50-point bonus.
+are collaborative, reset on an incorrect answer, end immediately on timeout,
+require three consecutive correct answers, and award every contributor a
+50-point bonus.
+
+Answers sent from the linked account are accepted from Android or iOS. Own
+messages originating from WhatsApp Web are ignored to prevent the bot from
+processing its own replies.
 
 ## Quiz database
 
@@ -120,14 +126,15 @@ psql "$QUIZ_DATABASE_URL" -v ON_ERROR_STOP=1 \
   -f database/migrations/001_quiz_content.sql \
   -f database/migrations/002_quiz_runtime.sql \
   -f database/migrations/003_quiz_scoring_outbox.sql \
-  -f database/migrations/004_quiz_lifecycle.sql
+  -f database/migrations/004_quiz_lifecycle.sql \
+  -f database/migrations/005_quiz_bugfixes.sql
 
 psql "$QUIZ_DATABASE_URL" -f database/verify-quiz-schema.sql
 unset QUIZ_DATABASE_URL
 ```
 
 The verification runs inside a transaction and rolls back its fixture data.
-With `DATABASE_URL` configured, startup validates migrations 001-004. The bot
+With `DATABASE_URL` configured, startup validates migrations 001-005. The bot
 then runs per-group FIFO answer evaluation, atomic First Blood scoring,
 automatic round rotation, monthly Asia/Jakarta seasons, adaptive difficulty,
 collaborative Boss Raids, and a background Gemini JSON batch worker. If a topic

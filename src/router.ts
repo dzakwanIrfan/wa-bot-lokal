@@ -82,6 +82,13 @@ export function shouldRouteGroupMessage(
   );
 }
 
+export function shouldIgnoreOwnGroupText(
+  fromMe: boolean,
+  deviceType: string | undefined,
+): boolean {
+  return fromMe && deviceType !== "android" && deviceType !== "ios";
+}
+
 export function commandNameFromText(text: string): string | null {
   return (
     text.trim().match(/^(\/[a-z0-9-]+)(?:\s|$)/i)?.[1]?.toLowerCase() ?? null
@@ -160,7 +167,7 @@ export function createMessageRouter({
         }
 
         if (message.type !== "chat") return;
-        if (message.fromMe) return;
+        if (shouldIgnoreOwnGroupText(message.fromMe, message.deviceType)) return;
 
         if (!commandName && groupTextHandler) {
           const result = await quizTaskQueue.run(chatId, () =>

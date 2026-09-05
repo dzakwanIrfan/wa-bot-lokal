@@ -1,6 +1,6 @@
 # Quiz engine architecture
 
-Migrations 001-004 define the PostgreSQL contract. The runtime connects group
+Migrations 001-005 define the PostgreSQL contract. The runtime connects group
 commands, FIFO answer evaluation, automatic round scheduling, seasonal scoring,
 and Gemini batch generation to that contract.
 
@@ -58,6 +58,8 @@ would allow a later answer to overtake an earlier answer.
 - Boss Raid requires three consecutive correct stages from any contributors.
 - Any non-command text during an open Boss stage is an attempt; an incorrect
   attempt resets the streak.
+- A Boss timeout ends that raid immediately. The next normal question starts,
+  or the session completes when the final Boss expires.
 - Each unique Boss contributor keeps normal round points and receives one
   additional 50-point bonus when the Boss is defeated.
 - Difficulty is 1 through 5. Season boundaries use `Asia/Jakarta`, while stored

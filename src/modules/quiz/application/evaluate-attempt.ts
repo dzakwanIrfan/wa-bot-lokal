@@ -27,6 +27,7 @@ export type QuizAttemptOutcome = Readonly<{
   bossProgress?: number;
   bossRequired?: number;
   bossReset?: boolean;
+  bossEnded?: boolean;
   bossDefeated?: boolean;
   bossBonusPoints?: number;
   outboxIds?: readonly string[];

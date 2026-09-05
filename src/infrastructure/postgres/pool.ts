@@ -31,6 +31,7 @@ export async function verifyQuizDatabase(pool: pg.Pool): Promise<void> {
     leaderboard: string | null;
     outbox: string | null;
     history: string | null;
+    qualityVersion: boolean;
   }>(`
     SELECT
       to_regclass('quiz.seasons')::text AS seasons,
@@ -44,13 +45,18 @@ export async function verifyQuizDatabase(pool: pg.Pool): Promise<void> {
       to_regclass('quiz.boss_raids')::text AS bosses,
       to_regclass('quiz.leaderboard')::text AS leaderboard,
       to_regclass('quiz.outbox')::text AS outbox,
-      to_regclass('quiz.season_group_history')::text AS history
+      to_regclass('quiz.season_group_history')::text AS history,
+      EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema = 'quiz' AND table_name = 'questions'
+          AND column_name = 'quality_version'
+      ) AS "qualityVersion"
   `);
   const schema = result.rows[0];
 
   if (!schema || Object.values(schema).some((relation) => !relation)) {
     throw new Error(
-      "Quiz database schema is incomplete. Apply database/migrations/001-004 first.",
+      "Quiz database schema is incomplete. Apply database/migrations/001-005 first.",
     );
   }
 }

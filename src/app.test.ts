@@ -22,6 +22,7 @@ import {
   parseQuizStart,
 } from "./modules/quiz/domain/game.js";
 import { parseGeneratedQuestions } from "./modules/quiz/infrastructure/gemini-question-generator.js";
+import { createQuizGroupTextHandler } from "./modules/quiz/presentation/whatsapp.js";
 import { createRemoveBackgroundCommand } from "./remove-bg-handler.js";
 import {
   commandNameFromText,
@@ -31,6 +32,7 @@ import {
   phoneNumberFromContactId,
   shouldRouteGroupMessage,
   shouldRouteMessage,
+  shouldIgnoreOwnGroupText,
 } from "./router.js";
 import {
   createImageStickerCommand,
@@ -197,7 +199,7 @@ test("quiz lifecycle input, monthly season, and generated JSON are bounded", () 
       {
         question: "Ibu kota Indonesia?",
         answer: "Jakarta",
-        acceptedAnswers: ["DKI Jakarta"],
+        acceptedAnswers: ["DKI Jakarta", "Bandung"],
         explanation: "Jakarta adalah jawaban yang diharapkan.",
         personaIntro: "Profesor geografi membuka peta!",
       },
@@ -213,6 +215,7 @@ test("quiz lifecycle input, monthly season, and generated JSON are bounded", () 
   );
   assert.equal(generated.length, 1);
   assert.equal(generated[0]?.canonicalAnswer, "Jakarta");
+  assert.deepEqual(generated[0]?.acceptedAnswers, ["DKI Jakarta"]);
   assert.equal(generated[0]?.maxLevenshteinDistance, 1);
 });
 
@@ -268,10 +271,10 @@ test("quiz ingress is FIFO per group and runs before mention lookup", async () =
       getMentions: async () => {
         throw new Error("Mention lookup must not run for a handled quiz attempt.");
       },
-    }) as never;
+    });
 
-  const first = routeMessage(message("first", "quiz-first"));
-  const second = routeMessage(message("second", "quiz-second"));
+  const first = routeMessage(message("first", "quiz-first") as never);
+  const second = routeMessage(message("second", "quiz-second") as never);
   const lifecycle = quizTaskQueue.run(groupId, async () => {
     started.push("lifecycle");
   });
@@ -288,8 +291,53 @@ test("quiz ingress is FIFO per group and runs before mention lookup", async () =
   await new Promise<void>((resolve) => setImmediate(resolve));
   assert.deepEqual(delivered.toSorted(), ["first", "second"]);
 
-  await routeMessage(message("/unknown", "quiz-command"));
+  await routeMessage(message("/unknown", "quiz-command") as never);
   assert.deepEqual(started, ["first", "second", "lifecycle"]);
+
+  assert.equal(shouldIgnoreOwnGroupText(true, "web"), true);
+  assert.equal(shouldIgnoreOwnGroupText(true, "android"), false);
+  assert.equal(shouldIgnoreOwnGroupText(true, "ios"), false);
+  assert.equal(shouldIgnoreOwnGroupText(false, "web"), false);
+
+  await routeMessage({
+    ...message("mobile answer", "quiz-mobile"),
+    fromMe: true,
+    author: undefined,
+    deviceType: "android",
+  } as never);
+  await routeMessage({
+    ...message("bot output", "quiz-bot"),
+    fromMe: true,
+    author: undefined,
+    deviceType: "web",
+  } as never);
+  assert.equal(started.includes("mobile answer"), true);
+  assert.equal(started.includes("bot output"), false);
+
+  let participantWhatsAppId = "";
+  const ownAccountHandler = createQuizGroupTextHandler(
+    {
+      evaluateAttempt: async (input: { participantWhatsAppId: string }) => {
+        participantWhatsAppId = input.participantWhatsAppId;
+        return { handled: true, kind: "incorrect" } as const;
+      },
+    } as never,
+    undefined,
+    () => "620000000001@c.us",
+  );
+  const ownResult = await ownAccountHandler({
+    ...message("own answer", "own-answer"),
+    fromMe: true,
+    author: undefined,
+    id: {
+      fromMe: true,
+      remote: groupId,
+      id: "own-answer",
+      _serialized: `true_${groupId}_own-answer`,
+    },
+  } as never, groupId, new Date());
+  assert.equal(ownResult.handled, true);
+  assert.equal(participantWhatsAppId, "620000000001@c.us");
 });
 
 test("text sticker command is quoted, bounded, and routes without a mention", async () => {

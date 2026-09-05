@@ -11,6 +11,7 @@ const HELP = [
   "/requestkuis [topik] — minta bank soal baru",
   "/klasemen — 10 pemain teratas musim ini",
   "/pause dan /resume — khusus admin grup",
+  "/stop — hentikan kuis (khusus admin grup)",
   "",
   "Strict: satu percobaan per pemain. Chaos: percobaan bebas; setiap pemain hanya mendapat poin sekali per soal.",
 ].join("\n");
@@ -130,6 +131,20 @@ export function createQuizCommands(
     if (!paused) await runtime.advanceGroup(groupId);
   };
 
+  const stop: CommandHandler = async (message, groupId) => {
+    if (!(await isGroupAdmin(message))) {
+      await message.reply("Command ini hanya bisa dipakai admin grup.");
+      return;
+    }
+    const result = await runtime.game.stop(groupId);
+    if (result.kind === "no-active") {
+      await message.reply("Tidak ada kuis aktif di grup ini.");
+      return;
+    }
+    await message.reply("⏹️ Kuis dihentikan oleh admin.");
+    await runtime.game.markOutboxPublished(result.outboxIds);
+  };
+
   return new Map([
     ["/help", safe("/help", help)],
     ["/start", safe("/start", help)],
@@ -138,5 +153,6 @@ export function createQuizCommands(
     ["/klasemen", safe("/klasemen", leaderboard)],
     ["/pause", safe("/pause", control(true))],
     ["/resume", safe("/resume", control(false))],
+    ["/stop", safe("/stop", stop)],
   ]);
 }
