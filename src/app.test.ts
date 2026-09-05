@@ -435,8 +435,8 @@ test("text sticker command is quoted, bounded, and routes without a mention", as
   assert.equal(removeBackgroundCalls, 1);
 });
 
-test("text sticker layout shrinks before splitting normal words", async () => {
-  const drawn: string[] = [];
+test("text sticker layout preserves words and fills long emoji content", async () => {
+  const drawn: Array<{ text: string; font: string; y: number }> = [];
   const context = {
     fillStyle: "",
     textBaseline: "",
@@ -446,8 +446,8 @@ test("text sticker layout shrinks before splitting normal words", async () => {
       const fontSize = Number.parseInt(this.font, 10);
       return { width: [...value].length * fontSize * 0.55 };
     },
-    fillText(value: string) {
-      drawn.push(value);
+    fillText(value: string, _x: number, y: number) {
+      drawn.push({ text: value, font: this.font, y });
     },
   };
   const canvas = {
@@ -478,8 +478,22 @@ test("text sticker layout shrinks before splitting normal words", async () => {
     ] as const) {
       drawn.length = 0;
       await createTextStickerMedia(client, text);
-      assert.deepEqual(drawn, expectedLines);
+      assert.deepEqual(
+        drawn.map(({ text: line }) => line),
+        expectedLines,
+      );
     }
+
+    drawn.length = 0;
+    await createTextStickerMedia(
+      client,
+      "kEliNgAn...akU.. rA..pAK💐💐💐🌷🌷🌷🌸🌸🌸😂😂😂 SAlam..seKo..DuluR...KaliMaNTaN💐💐🌸🌸👍👍 keLingaN Aquw oRa lur,,,JamAN NgrAntAU nek KalimanNTan😀🤝☺ ,,,Ple kaBARe sAiki😀",
+    );
+    const fontSize = Number.parseInt(drawn[0]?.font ?? "0", 10);
+    assert.ok(fontSize > 24);
+    assert.ok((drawn[0]?.y ?? 512) < 80);
+    assert.ok(drawn.some(({ text: line }) => line.includes("pAK")));
+    assert.ok(drawn.some(({ text: line }) => line.includes("KaliMaNTaN")));
   } finally {
     if (documentDescriptor) {
       Object.defineProperty(globalThis, "document", documentDescriptor);

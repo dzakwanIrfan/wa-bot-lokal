@@ -59,6 +59,40 @@ export async function createTextStickerMedia(
     context.fillStyle = "#000000";
     context.textBaseline = "top";
 
+    const graphemeSegmenter = new Intl.Segmenter(undefined, {
+      granularity: "grapheme",
+    });
+    const isEmoji = (value: string) =>
+      /\p{Extended_Pictographic}|\p{Regional_Indicator}|\u20e3/u.test(value);
+    const isWrapPunctuation = (value: string) =>
+      /^[.,!?;:…—–-]$/u.test(value);
+
+    function wrapParts(word: string): string[] {
+      const graphemes = [...graphemeSegmenter.segment(word)].map(
+        ({ segment }) => segment,
+      );
+      const parts: string[] = [];
+      let part = "";
+
+      graphemes.forEach((segment, index) => {
+        part += segment;
+        const punctuationBoundary =
+          isWrapPunctuation(segment) &&
+          !isWrapPunctuation(graphemes[index + 1] ?? "") &&
+          /[\p{L}\p{N}]/u.test(part);
+
+        if (isEmoji(segment) || punctuationBoundary) {
+          parts.push(part);
+          part = "";
+        }
+      });
+
+      if (part) {
+        parts.push(part);
+      }
+      return parts;
+    }
+
     function wrapParagraph(
       paragraph: string,
       breakLongWords: boolean,
@@ -70,15 +104,25 @@ export async function createTextStickerMedia(
       let line = "";
 
       for (const word of words) {
-        if (context.measureText(word).width > maxWidth) {
-          if (!breakLongWords) return null;
+        for (const [index, part] of wrapParts(word).entries()) {
+          const candidate = line
+            ? `${line}${index === 0 ? " " : ""}${part}`
+            : part;
+          if (context.measureText(candidate).width <= maxWidth) {
+            line = candidate;
+            continue;
+          }
+
           if (line) lines.push(line);
           line = "";
 
-          const graphemes = new Intl.Segmenter(undefined, {
-            granularity: "grapheme",
-          }).segment(word);
-          for (const { segment } of graphemes) {
+          if (context.measureText(part).width <= maxWidth) {
+            line = part;
+            continue;
+          }
+          if (!breakLongWords) return null;
+
+          for (const { segment } of graphemeSegmenter.segment(part)) {
             const chunk = line + segment;
             if (line && context.measureText(chunk).width > maxWidth) {
               lines.push(line);
@@ -87,17 +131,7 @@ export async function createTextStickerMedia(
               line = chunk;
             }
           }
-          continue;
         }
-
-        const candidate = line ? `${line} ${word}` : word;
-        if (context.measureText(candidate).width <= maxWidth) {
-          line = candidate;
-          continue;
-        }
-
-        if (line) lines.push(line);
-        line = word;
       }
 
       if (line) lines.push(line);
