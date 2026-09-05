@@ -59,7 +59,10 @@ export async function createTextStickerMedia(
     context.fillStyle = "#000000";
     context.textBaseline = "top";
 
-    function wrapParagraph(paragraph: string): string[] {
+    function wrapParagraph(
+      paragraph: string,
+      breakLongWords: boolean,
+    ): string[] | null {
       if (!paragraph) return [""];
 
       const words = paragraph.split(/\s+/);
@@ -67,6 +70,26 @@ export async function createTextStickerMedia(
       let line = "";
 
       for (const word of words) {
+        if (context.measureText(word).width > maxWidth) {
+          if (!breakLongWords) return null;
+          if (line) lines.push(line);
+          line = "";
+
+          const graphemes = new Intl.Segmenter(undefined, {
+            granularity: "grapheme",
+          }).segment(word);
+          for (const { segment } of graphemes) {
+            const chunk = line + segment;
+            if (line && context.measureText(chunk).width > maxWidth) {
+              lines.push(line);
+              line = segment;
+            } else {
+              line = chunk;
+            }
+          }
+          continue;
+        }
+
         const candidate = line ? `${line} ${word}` : word;
         if (context.measureText(candidate).width <= maxWidth) {
           line = candidate;
@@ -74,40 +97,57 @@ export async function createTextStickerMedia(
         }
 
         if (line) lines.push(line);
-        line = "";
-
-        for (const character of word) {
-          const chunk = line + character;
-          if (line && context.measureText(chunk).width > maxWidth) {
-            lines.push(line);
-            line = character;
-          } else {
-            line = chunk;
-          }
-        }
+        line = word;
       }
 
       if (line) lines.push(line);
       return lines;
     }
 
-    let fontSize = 164;
-    let lines: string[] = [];
-    let lineHeight = 0;
+    function findLayout(
+      maximumFontSize: number,
+      minimumFontSize: number,
+      breakLongWords: boolean,
+    ): { fontSize: number; lineHeight: number; lines: string[] } | null {
+      for (
+        let fontSize = maximumFontSize;
+        fontSize >= minimumFontSize;
+        fontSize -= 2
+      ) {
+        context.font = `${fontSize}px Arial, Helvetica, sans-serif`;
+        const lines: string[] = [];
+        let valid = true;
 
-    for (; fontSize >= 32; fontSize -= 4) {
-      context.font = `${fontSize}px Arial, Helvetica, sans-serif`;
-      lines = sourceText
-        .split("\n")
-        .flatMap((paragraph) => wrapParagraph(paragraph));
-      lineHeight = fontSize * 1.04;
+        for (const paragraph of sourceText.split("\n")) {
+          const wrapped = wrapParagraph(paragraph, breakLongWords);
+          if (!wrapped) {
+            valid = false;
+            break;
+          }
+          lines.push(...wrapped);
+        }
 
-      if (lines.length * lineHeight <= maxHeight) break;
+        const lineHeight = fontSize * 1.04;
+        if (valid && lines.length * lineHeight <= maxHeight) {
+          return { fontSize, lineHeight, lines };
+        }
+      }
+      return null;
     }
 
-    const top = (size - lines.length * lineHeight) / 2;
-    lines.forEach((line, index) => {
-      context.fillText(line, margin, top + index * lineHeight);
+    const layout =
+      findLayout(180, 24, false) ??
+      findLayout(24, 16, true);
+    if (!layout) throw new Error("Text does not fit inside the sticker.");
+
+    context.font = `${layout.fontSize}px Arial, Helvetica, sans-serif`;
+    const blockWidth = Math.max(
+      ...layout.lines.map((line) => context.measureText(line).width),
+    );
+    const left = (size - blockWidth) / 2;
+    const top = (size - layout.lines.length * layout.lineHeight) / 2;
+    layout.lines.forEach((line, index) => {
+      context.fillText(line, left, top + index * layout.lineHeight);
     });
 
     return canvas.toDataURL("image/webp", 0.95).split(",", 2)[1];

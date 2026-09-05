@@ -36,6 +36,7 @@ import {
 } from "./router.js";
 import {
   createImageStickerCommand,
+  createTextStickerMedia,
   parseTextStickerCommand,
 } from "./sticker.js";
 import {
@@ -432,6 +433,60 @@ test("text sticker command is quoted, bounded, and routes without a mention", as
   assert.equal(textCalls, 1);
   assert.equal(imageCalls, 1);
   assert.equal(removeBackgroundCalls, 1);
+});
+
+test("text sticker layout shrinks before splitting normal words", async () => {
+  const drawn: string[] = [];
+  const context = {
+    fillStyle: "",
+    textBaseline: "",
+    font: "",
+    fillRect: () => undefined,
+    measureText(value: string) {
+      const fontSize = Number.parseInt(this.font, 10);
+      return { width: [...value].length * fontSize * 0.55 };
+    },
+    fillText(value: string) {
+      drawn.push(value);
+    },
+  };
+  const canvas = {
+    width: 0,
+    height: 0,
+    getContext: () => context,
+    toDataURL: () => "data:image/webp;base64,dGVzdA==",
+  };
+  const documentDescriptor = Object.getOwnPropertyDescriptor(globalThis, "document");
+  Object.defineProperty(globalThis, "document", {
+    configurable: true,
+    value: { createElement: () => canvas },
+  });
+  const client = {
+    pupPage: {
+      evaluate: async (
+        render: (sourceText: string) => string,
+        sourceText: string,
+      ) => render(sourceText),
+    },
+  } as never;
+
+  try {
+    for (const [text, expectedLines] of [
+      ["prabowo gapernah jumatan", ["prabowo", "gapernah", "jumatan"]],
+      ["Althof gajelas", ["Althof", "gajelas"]],
+      ["literasi plz", ["literasi", "plz"]],
+    ] as const) {
+      drawn.length = 0;
+      await createTextStickerMedia(client, text);
+      assert.deepEqual(drawn, expectedLines);
+    }
+  } finally {
+    if (documentDescriptor) {
+      Object.defineProperty(globalThis, "document", documentDescriptor);
+    } else {
+      Reflect.deleteProperty(globalThis, "document");
+    }
+  }
 });
 
 test("image commands accept an attached image or a quoted image", async () => {
