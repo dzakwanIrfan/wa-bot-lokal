@@ -30,7 +30,10 @@ function replyFor(outcome: QuizAttemptOutcome): string | null {
   return `✅ Jawaban benar, +${outcome.points} poin.`;
 }
 
-export function createQuizGroupTextHandler(engine: PostgresQuizEngine) {
+export function createQuizGroupTextHandler(
+  engine: PostgresQuizEngine,
+  afterAttempt?: (groupId: string, outcome: QuizAttemptOutcome) => Promise<void>,
+) {
   return async (message: Message, groupId: string, receivedAt: Date) => {
     const participantWhatsAppId = message.author?.trim();
     const whatsappMessageId = serializedMessageId(message).trim();
@@ -52,13 +55,20 @@ export function createQuizGroupTextHandler(engine: PostgresQuizEngine) {
     });
     const reply = replyFor(outcome);
 
+    const shouldAdvance = outcome.kind === "correct" || outcome.kind === "expired";
     return {
       handled: outcome.handled,
       afterCommit:
-        outcome.handled && reply
+        outcome.handled && (reply || shouldAdvance)
           ? async () => {
-              await message.reply(reply);
-              await engine.markOutboxPublished(outcome.outboxIds ?? []);
+              try {
+                if (reply) {
+                  await message.reply(reply);
+                  await engine.markOutboxPublished(outcome.outboxIds ?? []);
+                }
+              } finally {
+                if (shouldAdvance) await afterAttempt?.(groupId, outcome);
+              }
             }
           : undefined,
     } as const;

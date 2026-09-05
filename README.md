@@ -33,6 +33,13 @@ GEMINI_API_KEY=your_real_api_key
 GEMINI_MODEL=gemini-3.5-flash-lite
 PHOTOROOM_API_KEY=your_photoroom_api_key
 DATABASE_URL=postgresql://quiz_bot:your_password@127.0.0.1:5432/wa_bot
+QUIZ_DEFAULT_MODE=strict
+QUIZ_QUESTION_COUNT=10
+QUIZ_BOSS_EVERY=5
+QUIZ_BATCH_SIZE=20
+QUIZ_DURATION_SECONDS=30
+QUIZ_TICK_MILLISECONDS=1000
+QUIZ_GENERATION_INTERVAL_SECONDS=15
 TARGET_PHONE_NUMBERS=["628123456789","628987654321"]
 TARGET_GROUP_IDS=["120363000000000000@g.us"]
 ```
@@ -78,7 +85,29 @@ PNG result is returned as a document to preserve its quality. Processing uses
 in-memory buffers only; no temporary image is written to disk. HTTP `429`
 responses are reported without an automatic retry.
 
-## Quiz engine schema (Phase 1)
+### Quiz commands
+
+The quiz engine only runs in groups listed by `TARGET_GROUP_IDS`:
+
+```text
+/help
+/start
+/kuis
+/kuis chaos sejarah Indonesia
+/requestkuis film Indonesia
+/klasemen
+/pause
+/resume
+```
+
+`/pause` and `/resume` are restricted to group admins (the linked account is
+also allowed). Strict mode accepts one attempt per participant per question.
+Chaos accepts unlimited attempts but awards each participant at most once per
+question: 10 points for First Blood and 5 for later correct answers. Boss Raids
+are collaborative, reset on an incorrect answer or timeout, require three
+consecutive correct answers, and award every contributor a 50-point bonus.
+
+## Quiz database
 
 The approved quiz architecture and locking contract are documented in
 [`docs/quiz-architecture.md`](docs/quiz-architecture.md). Apply the ordered
@@ -90,22 +119,22 @@ QUIZ_DATABASE_URL="$(node --env-file=.env -p 'process.env.DATABASE_URL')"
 psql "$QUIZ_DATABASE_URL" -v ON_ERROR_STOP=1 \
   -f database/migrations/001_quiz_content.sql \
   -f database/migrations/002_quiz_runtime.sql \
-  -f database/migrations/003_quiz_scoring_outbox.sql
+  -f database/migrations/003_quiz_scoring_outbox.sql \
+  -f database/migrations/004_quiz_lifecycle.sql
 
 psql "$QUIZ_DATABASE_URL" -f database/verify-quiz-schema.sql
 unset QUIZ_DATABASE_URL
 ```
 
 The verification runs inside a transaction and rolls back its fixture data.
-With `DATABASE_URL` configured, Phase 2 validates the schema on startup and
-routes non-command text from target groups into a dedicated FIFO evaluator. It
-supports Strict attempts, Chaos 10/5 scoring, First Blood row locking, Boss
-progress/reset/bonus, leaderboard updates, and transactional outbox writes.
-Without `DATABASE_URL`, these quiz paths are disabled and the existing bot
-features continue to run.
-
-Session creation and automatic question rotation are not part of Phase 2 yet;
-the evaluator only consumes answers for a running session with an open round.
+With `DATABASE_URL` configured, startup validates migrations 001-004. The bot
+then runs per-group FIFO answer evaluation, atomic First Blood scoring,
+automatic round rotation, monthly Asia/Jakarta seasons, adaptive difficulty,
+collaborative Boss Raids, and a background Gemini JSON batch worker. If a topic
+has too few questions, `/kuis` queues a batch and asks the user to retry after
+the ready notification. Live rounds never wait for Gemini. Without
+`DATABASE_URL`, quiz commands and answer evaluation are disabled while the
+existing bot features continue to work.
 
 ## Verify and run
 

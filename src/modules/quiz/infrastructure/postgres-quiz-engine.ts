@@ -206,6 +206,27 @@ export class PostgresQuizEngine {
           "round_closed",
           { reason: "deadline" },
         );
+        let bossReset = false;
+        if (boss && boss.current_streak > 0) {
+          await client.query(
+            `
+              UPDATE quiz.boss_raids
+              SET current_streak = 0, reset_count = reset_count + 1
+              WHERE id = $1
+            `,
+            [boss.id],
+          );
+          await insertSessionEvent(
+            client,
+            `boss-timeout-reset:${round.id}`,
+            session.id,
+            round.id,
+            null,
+            "boss_progress_reset",
+            { previousProgress: boss.current_streak, reason: "deadline" },
+          );
+          bossReset = true;
+        }
         const outboxIds = await insertOutbox(
           client,
           `round-expired:${round.id}`,
@@ -214,7 +235,13 @@ export class PostgresQuizEngine {
           { groupId: input.groupId, roundId: round.id },
         );
 
-        return commit(client, { handled: true, kind: "expired", outboxIds });
+        return commit(client, {
+          handled: true,
+          kind: "expired",
+          bossReset,
+          bossRequired: boss?.required_correct_answers,
+          outboxIds,
+        });
       }
 
       const participantResult = await client.query<{ id: string }>(

@@ -3,6 +3,7 @@ import type { Message } from "whatsapp-web.js";
 import { normalizePhoneNumber } from "./config.js";
 import type { GeminiService } from "./gemini.js";
 import type { ConversationMemory } from "./memory.js";
+import { GroupTaskQueue } from "./modules/quiz/application/group-task-queue.js";
 
 type RouteCandidate = Readonly<{
   fromMe: boolean;
@@ -36,6 +37,7 @@ type RouterDependencies = Readonly<{
   gemini: GeminiService;
   groupCommands?: ReadonlyMap<string, CommandHandler>;
   groupTextHandler?: GroupTextHandler;
+  quizTaskQueue?: GroupTaskQueue;
 }>;
 
 export function shouldRouteMessage(
@@ -114,9 +116,9 @@ export function createMessageRouter({
   gemini,
   groupCommands = new Map(),
   groupTextHandler,
+  quizTaskQueue = new GroupTaskQueue(),
 }: RouterDependencies) {
   const queues = new Map<string, Promise<unknown>>();
-  const quizQueues = new Map<string, Promise<unknown>>();
 
   function enqueue<T>(
     target: Map<string, Promise<unknown>>,
@@ -161,7 +163,7 @@ export function createMessageRouter({
         if (message.fromMe) return;
 
         if (!commandName && groupTextHandler) {
-          const result = await enqueue(quizQueues, chatId, () =>
+          const result = await quizTaskQueue.run(chatId, () =>
             groupTextHandler(message, chatId, receivedAt),
           );
           if (result.handled) {

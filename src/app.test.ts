@@ -9,11 +9,19 @@ import {
 import { buildSystemInstruction, withTransientRetry } from "./gemini.js";
 import { imageMediaFromCommand } from "./media.js";
 import { createConversationMemory } from "./memory.js";
+import { GroupTaskQueue } from "./modules/quiz/application/group-task-queue.js";
 import {
   evaluateQuizAnswer,
   levenshteinDistance,
   normalizeQuizAnswer,
 } from "./modules/quiz/domain/answer.js";
+import {
+  adaptiveDifficulty,
+  jakartaMonthBounds,
+  normalizeQuizTopic,
+  parseQuizStart,
+} from "./modules/quiz/domain/game.js";
+import { parseGeneratedQuestions } from "./modules/quiz/infrastructure/gemini-question-generator.js";
 import { createRemoveBackgroundCommand } from "./remove-bg-handler.js";
 import {
   commandNameFromText,
@@ -118,6 +126,18 @@ test("custom writing style extends the trusted system instruction", () => {
   assert.match(config.replyStylePrompt, /bahasa Indonesia casual/);
   assert.doesNotMatch(config.replyStylePrompt, /this env value must be ignored/);
   assert.equal(config.databaseUrl, null);
+  assert.equal(config.quiz.defaultMode, "strict");
+  assert.equal(config.quiz.questionCount, 10);
+  assert.equal(config.quiz.bossEvery, 5);
+  assert.throws(
+    () => loadConfig({
+      GEMINI_API_KEY: "test-key",
+      PHOTOROOM_API_KEY: "photoroom-test-key",
+      TARGET_PHONE_NUMBERS: '["628123456789"]',
+      QUIZ_BOSS_EVERY: "11",
+    }),
+    /QUIZ_BOSS_EVERY/,
+  );
 });
 
 test("quiz answer matching is normalized, bounded, and typo-aware", () => {
@@ -153,6 +173,49 @@ test("quiz answer matching is normalized, bounded, and typo-aware", () => {
   );
 });
 
+test("quiz lifecycle input, monthly season, and generated JSON are bounded", () => {
+  assert.deepEqual(parseQuizStart("/kuis", "strict"), {
+    mode: "strict",
+    topic: "campuran",
+  });
+  assert.deepEqual(parseQuizStart("/kuis chaos Sejarah Indonesia", "strict"), {
+    mode: "chaos",
+    topic: "sejarah indonesia",
+  });
+  assert.equal(normalizeQuizTopic("x".repeat(61)), null);
+  assert.equal(adaptiveDifficulty(null), 3);
+  assert.equal(adaptiveDifficulty(0.8), 5);
+  assert.equal(adaptiveDifficulty(0.2), 1);
+
+  const month = jakartaMonthBounds(new Date("2026-09-05T08:00:00.000Z"));
+  assert.equal(month.name, "2026-09");
+  assert.equal(month.startsAt.toISOString(), "2026-08-31T17:00:00.000Z");
+  assert.equal(month.endsAt.toISOString(), "2026-09-30T17:00:00.000Z");
+
+  const generated = parseGeneratedQuestions(
+    JSON.stringify([
+      {
+        question: "Ibu kota Indonesia?",
+        answer: "Jakarta",
+        acceptedAnswers: ["DKI Jakarta"],
+        explanation: "Jakarta adalah jawaban yang diharapkan.",
+        personaIntro: "Profesor geografi membuka peta!",
+      },
+      {
+        question: "Ibu kota Indonesia?",
+        answer: "duplikat",
+        acceptedAnswers: [],
+        explanation: "duplikat",
+        personaIntro: "duplikat",
+      },
+    ]),
+    20,
+  );
+  assert.equal(generated.length, 1);
+  assert.equal(generated[0]?.canonicalAnswer, "Jakarta");
+  assert.equal(generated[0]?.maxLevenshteinDistance, 1);
+});
+
 test("quiz ingress is FIFO per group and runs before mention lookup", async () => {
   const groupId = "120363022657003836@g.us";
   const started: string[] = [];
@@ -165,6 +228,7 @@ test("quiz ingress is FIFO per group and runs before mention lookup", async () =
   const firstDeliveryGate = new Promise<void>((resolve) => {
     releaseFirstDelivery = resolve;
   });
+  const quizTaskQueue = new GroupTaskQueue();
   const routeMessage = createMessageRouter({
     targetPhoneNumbers: new Set(),
     targetGroupIds: new Set([groupId]),
@@ -174,6 +238,7 @@ test("quiz ingress is FIFO per group and runs before mention lookup", async () =
         throw new Error("Gemini must not run for a quiz attempt.");
       },
     },
+    quizTaskQueue,
     groupTextHandler: async (message, receivedGroupId, receivedAt) => {
       assert.equal(receivedGroupId, groupId);
       assert.equal(receivedAt instanceof Date, true);
@@ -207,13 +272,16 @@ test("quiz ingress is FIFO per group and runs before mention lookup", async () =
 
   const first = routeMessage(message("first", "quiz-first"));
   const second = routeMessage(message("second", "quiz-second"));
+  const lifecycle = quizTaskQueue.run(groupId, async () => {
+    started.push("lifecycle");
+  });
   await new Promise<void>((resolve) => setImmediate(resolve));
   assert.deepEqual(started, ["first"]);
 
   releaseFirst();
-  await Promise.all([first, second]);
+  await Promise.all([first, second, lifecycle]);
   await new Promise<void>((resolve) => setImmediate(resolve));
-  assert.deepEqual(started, ["first", "second"]);
+  assert.deepEqual(started, ["first", "second", "lifecycle"]);
   assert.equal(delivered.includes("first"), false);
 
   releaseFirstDelivery();
@@ -221,7 +289,7 @@ test("quiz ingress is FIFO per group and runs before mention lookup", async () =
   assert.deepEqual(delivered.toSorted(), ["first", "second"]);
 
   await routeMessage(message("/unknown", "quiz-command"));
-  assert.deepEqual(started, ["first", "second"]);
+  assert.deepEqual(started, ["first", "second", "lifecycle"]);
 });
 
 test("text sticker command is quoted, bounded, and routes without a mention", async () => {

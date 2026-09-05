@@ -11,10 +11,35 @@ export type AppConfig = Readonly<{
   geminiModel: string;
   photoroomApiKey: string;
   databaseUrl: string | null;
+  quiz: Readonly<{
+    defaultMode: "strict" | "chaos";
+    questionCount: number;
+    bossEvery: number;
+    batchSize: number;
+    durationSeconds: number;
+    tickMilliseconds: number;
+    generationIntervalMilliseconds: number;
+  }>;
   replyStylePrompt: string;
   targetPhoneNumbers: ReadonlySet<string>;
   targetGroupIds: ReadonlySet<string>;
 }>;
+
+function integerEnv(
+  env: NodeJS.ProcessEnv,
+  name: string,
+  fallback: number,
+  minimum: number,
+  maximum: number,
+): number {
+  const raw = env[name]?.trim();
+  if (!raw) return fallback;
+  const value = Number(raw);
+  if (!Number.isInteger(value) || value < minimum || value > maximum) {
+    throw new Error(`${name} must be an integer between ${minimum} and ${maximum}.`);
+  }
+  return value;
+}
 
 function requireEnv(env: NodeJS.ProcessEnv, name: string): string {
   const value = env[name]?.trim();
@@ -89,11 +114,31 @@ export function parseTargetGroupIds(raw: string): ReadonlySet<string> {
 }
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
+  const questionCount = integerEnv(env, "QUIZ_QUESTION_COUNT", 10, 1, 50);
+  const bossEvery = integerEnv(env, "QUIZ_BOSS_EVERY", 5, 0, 50);
+  if (bossEvery > questionCount) {
+    throw new Error("QUIZ_BOSS_EVERY must be 0 or no greater than QUIZ_QUESTION_COUNT.");
+  }
+  const defaultMode = env.QUIZ_DEFAULT_MODE?.trim().toLowerCase() || "strict";
+  if (defaultMode !== "strict" && defaultMode !== "chaos") {
+    throw new Error("QUIZ_DEFAULT_MODE must be strict or chaos.");
+  }
+
   return {
     geminiApiKey: requireEnv(env, "GEMINI_API_KEY"),
     geminiModel: env.GEMINI_MODEL?.trim() || DEFAULT_GEMINI_MODEL,
     photoroomApiKey: requireEnv(env, "PHOTOROOM_API_KEY"),
     databaseUrl: env.DATABASE_URL?.trim() || null,
+    quiz: {
+      defaultMode,
+      questionCount,
+      bossEvery,
+      batchSize: integerEnv(env, "QUIZ_BATCH_SIZE", 20, 1, 100),
+      durationSeconds: integerEnv(env, "QUIZ_DURATION_SECONDS", 30, 5, 300),
+      tickMilliseconds: integerEnv(env, "QUIZ_TICK_MILLISECONDS", 1_000, 250, 60_000),
+      generationIntervalMilliseconds:
+        integerEnv(env, "QUIZ_GENERATION_INTERVAL_SECONDS", 15, 5, 3_600) * 1_000,
+    },
     replyStylePrompt: loadReplyStylePrompt(),
     targetPhoneNumbers: parseTargetPhoneNumbers(
       requireEnv(env, "TARGET_PHONE_NUMBERS"),

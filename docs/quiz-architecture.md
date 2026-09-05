@@ -1,8 +1,8 @@
 # Quiz engine architecture
 
-Phase 1 defines the PostgreSQL contract. Phase 2 connects incoming group text
-to an atomic First Blood evaluator. Session creation, automatic round rotation,
-and Gemini question generation remain outside Phase 2.
+Migrations 001-004 define the PostgreSQL contract. The runtime connects group
+commands, FIFO answer evaluation, automatic round scheduling, seasonal scoring,
+and Gemini batch generation to that contract.
 
 ## Module boundaries
 
@@ -11,15 +11,10 @@ scaffolding is intentionally omitted.
 
 ```text
 src/modules/quiz/
-  domain/                  answer normalization and Levenshtein matching
-  application/             evaluator input and outcome contracts
-  infrastructure/          PostgreSQL transaction and scoring
-  presentation/            WhatsApp input validation and reply delivery
-
-src/modules/question-generation/
-  application/             batch-generation use cases
-  infrastructure/gemini    Gemini JSON generation and validation
-  infrastructure/postgres  question persistence
+  domain/                  answer matching, command input, season boundaries
+  application/             evaluator contracts and background runtime
+  infrastructure/          PostgreSQL game state and Gemini batch generation
+  presentation/            WhatsApp commands, validation, and reply delivery
 
 database/
   migrations/              ordered forward-only PostgreSQL migrations
@@ -35,11 +30,11 @@ consumer inserts attempts serially, so
 `quiz.quiz_attempts.received_seq` records ingress order rather than WhatsApp's
 sender timestamp.
 
-The Phase 2 evaluator must use this lock order in one short transaction:
+The evaluator uses this lock order in one short transaction:
 
 1. Lock the active `quiz.quiz_sessions` row with `SELECT ... FOR UPDATE`.
 2. Lock/read the open `quiz.quiz_rounds` row.
-3. Evaluate the next pending attempt by ascending `received_seq`.
+3. Insert and evaluate the FIFO-delivered attempt, assigning `received_seq`.
 4. Insert the idempotent `score_events` row.
 5. Upsert `leaderboard` and insert the corresponding `outbox` row.
 6. Commit before sending any WhatsApp reply.
@@ -70,14 +65,19 @@ would allow a later answer to overtake an earlier answer.
 - Monthly resets create a new season and new leaderboard rows; historical rows
   are retained.
 
-## Phase 2 boundary
+## Runtime lifecycle
 
 When `DATABASE_URL` is absent, startup logs that the quiz engine is disabled and
-the existing Gemini/sticker commands continue to work. When it is present, the
-bot verifies the Phase 1 schema before connecting WhatsApp. Only a pre-existing
-running session with an open round consumes group answers; otherwise routing
-falls back to the existing mention-only Gemini behavior.
+the existing Gemini/sticker commands continue to work. When present, startup
+verifies all required relations before connecting WhatsApp.
 
-Phase 2 deliberately does not implement `/kuis`, automatic next-question
-scheduling, or an outbox retry worker. Those require the remaining decisions on
-game length, Boss frequency, and retry policy.
+`/kuis` creates the monthly Asia/Jakarta season and an active session only when
+the database already has enough questions. The runtime opens and expires rounds
+in short transactions; Gemini never runs on the live-answer path. A separate
+timer claims one queued `generation_batches` row with `FOR UPDATE SKIP LOCKED`,
+calls Gemini outside the transaction, validates its JSON, and persists the
+result. Failed batches are recorded once and are not automatically requeued.
+
+Question count, Boss frequency, duration, batch size, and worker intervals are
+explicit environment configuration. Historical leaderboards remain attached to
+closed seasons and `quiz.season_group_history` exposes their group totals.
