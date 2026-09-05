@@ -1,6 +1,10 @@
 import { loadConfig } from "./config.js";
 import { createGeminiService } from "./gemini.js";
 import { createConversationMemory } from "./memory.js";
+import {
+  createRemoveBackgroundCommand,
+  REMOVE_BACKGROUND_COMMAND,
+} from "./remove-bg-handler.js";
 import { createMessageRouter } from "./router.js";
 import {
   createImageStickerCommand,
@@ -24,6 +28,10 @@ const routeMessage = createMessageRouter({
   memory,
   gemini,
   groupCommands: new Map([
+    [
+      REMOVE_BACKGROUND_COMMAND,
+      createRemoveBackgroundCommand(config.photoroomApiKey),
+    ],
     [IMAGE_STICKER_COMMAND, createImageStickerCommand(client)],
     [TEXT_STICKER_COMMAND, createTextStickerCommand(client)],
   ]),

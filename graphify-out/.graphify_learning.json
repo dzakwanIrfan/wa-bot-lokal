@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-05T06:11:32.511494+00:00",
+  "generated_at": "2026-09-05T06:25:24.721652+00:00",
   "nodes": {
     "readme_environment_configuration": {
       "code_fingerprint": "254a21bc357b39a1cc8ec3f20ee91d27967639adc41a1a6f6cab30b284b34a1c",
@@ -32,7 +32,7 @@
           "q": "Add AI prompt engineering so WhatsApp replies match the user's language and typing style"
         }
       ],
-      "score": 5.991285149,
+      "score": 5.98995195,
       "source_file": "README.md",
       "status": "preferred",
       "uses": 6
@@ -48,7 +48,7 @@
           "q": "gimana cara masukin id grup whatsapp juga?"
         }
       ],
-      "score": 0.9980425,
+      "score": 0.997820412,
       "source_file": "README.md",
       "status": "tentative",
       "uses": 1
@@ -56,8 +56,13 @@
     "src_config_loadconfig": {
       "code_fingerprint": "21a9d7210af75b943177284e8dd2e32c2a74b3572772e4d5af671df6a6bd1e9f",
       "label": "loadConfig()",
-      "last": "2026-09-05T05:51:49.698299+00:00",
+      "last": "2026-09-05T06:23:44.229242+00:00",
       "provenance": [
+        {
+          "date": "2026-09-05T06:23:44.229242+00:00",
+          "outcome": "useful",
+          "q": "Add a production-ready /remove-bg command with a handler, media service, swappable background-removal service, secure API key, cleanup, error handling, and high-quality PNG document output; recommend tooling and directory structure first, then wait for confirmation."
+        },
         {
           "date": "2026-09-05T05:51:49.698299+00:00",
           "outcome": "useful",
@@ -77,17 +82,12 @@
           "date": "2026-09-05T04:06:03.942655+00:00",
           "outcome": "useful",
           "q": "Execute the approved WhatsApp writing style prompt using the attached style context document"
-        },
-        {
-          "date": "2026-09-05T03:59:39.729930+00:00",
-          "outcome": "useful",
-          "q": "Add AI prompt engineering so WhatsApp replies match the user's language and typing style"
         }
       ],
-      "score": 5.991285149,
+      "score": 6.989925077,
       "source_file": "src/config.ts",
       "status": "preferred",
-      "uses": 6
+      "uses": 7
     },
     "src_config_parsetargetphonenumbers": {
       "code_fingerprint": "21a9d7210af75b943177284e8dd2e32c2a74b3572772e4d5af671df6a6bd1e9f",
@@ -105,7 +105,7 @@
           "q": "Why does pnpm start report Missing required environment variable TARGET_PHONE_NUMBERS?"
         }
       ],
-      "score": 1.995845016,
+      "score": 1.995400895,
       "source_file": "src/config.ts",
       "status": "preferred",
       "uses": 2
@@ -126,7 +126,7 @@
           "q": "Add AI prompt engineering so WhatsApp replies match the user's language and typing style"
         }
       ],
-      "score": 1.995874969,
+      "score": 1.995430841,
       "source_file": "src/gemini.ts",
       "status": "preferred",
       "uses": 2
@@ -147,7 +147,7 @@
           "q": "Add AI prompt engineering so WhatsApp replies match the user's language and typing style"
         }
       ],
-      "score": 1.995874969,
+      "score": 1.995430841,
       "source_file": "src/gemini.ts",
       "status": "preferred",
       "uses": 2
@@ -155,8 +155,14 @@
     "src_index_client": {
       "code_fingerprint": "869b6d9d63abe7c559d3247eb69fef3a446330776b9eb438ac53fd9cdbdfa558",
       "label": "client",
-      "last": "2026-09-05T06:10:32.676107+00:00",
+      "last": "2026-09-05T06:14:56.347690+00:00",
+      "neg": 1,
       "provenance": [
+        {
+          "date": "2026-09-05T06:14:56.347690+00:00",
+          "outcome": "corrected",
+          "q": "Image sticker download failed at Message.getQuotedMessage with r: r"
+        },
         {
           "date": "2026-09-05T06:10:32.676107+00:00",
           "outcome": "useful",
@@ -176,23 +182,30 @@
           "date": "2026-09-05T05:51:49.698299+00:00",
           "outcome": "useful",
           "q": "execute! implement image sticker and prompt file"
-        },
-        {
-          "date": "2026-09-05T05:47:56.513903+00:00",
-          "outcome": "useful",
-          "q": "lanjut tambahkan fitur membuat sticker dari gambar menggunakan command /sticker lalu untuk REPLY_STYLE_PROMPT lebih baik jangan masukin .env, bikin file sendiri aja biar user bisa menuliskannya dengan enak dan lengkap. sesuaikan dengan md terlampir"
         }
       ],
-      "score": 9.991275444,
+      "score": 8.989220178,
       "source_file": "src/index.ts",
-      "status": "preferred",
-      "uses": 10
+      "status": "contested",
+      "uses": 10,
+      "verdict": "useful"
     },
     "src_router_commandhandler": {
       "code_fingerprint": "1dc6dfcb5cb73bbf6c3d5af60728470652fd96816e95296947f807dc3bc91630",
       "label": "CommandHandler",
-      "last": "2026-09-05T06:10:32.676107+00:00",
+      "last": "2026-09-05T06:23:44.229242+00:00",
+      "neg": 1,
       "provenance": [
+        {
+          "date": "2026-09-05T06:23:44.229242+00:00",
+          "outcome": "useful",
+          "q": "Add a production-ready /remove-bg command with a handler, media service, swappable background-removal service, secure API key, cleanup, error handling, and high-quality PNG document output; recommend tooling and directory structure first, then wait for confirmation."
+        },
+        {
+          "date": "2026-09-05T06:14:56.347690+00:00",
+          "outcome": "corrected",
+          "q": "Image sticker download failed at Message.getQuotedMessage with r: r"
+        },
         {
           "date": "2026-09-05T06:10:32.676107+00:00",
           "outcome": "useful",
@@ -207,28 +220,30 @@
           "date": "2026-09-05T05:59:21.538016+00:00",
           "outcome": "useful",
           "q": "Image sticker generation failed: r"
-        },
-        {
-          "date": "2026-09-05T05:51:49.698299+00:00",
-          "outcome": "useful",
-          "q": "execute! implement image sticker and prompt file"
-        },
-        {
-          "date": "2026-09-05T05:47:56.513903+00:00",
-          "outcome": "useful",
-          "q": "lanjut tambahkan fitur membuat sticker dari gambar menggunakan command /sticker lalu untuk REPLY_STYLE_PROMPT lebih baik jangan masukin .env, bikin file sendiri aja biar user bisa menuliskannya dengan enak dan lengkap. sesuaikan dengan md terlampir"
         }
       ],
-      "score": 7.994855876,
+      "score": 7.993217987,
       "source_file": "src/router.ts",
-      "status": "preferred",
-      "uses": 8
+      "status": "contested",
+      "uses": 9,
+      "verdict": "useful"
     },
     "src_router_createmessagerouter": {
       "code_fingerprint": "1dc6dfcb5cb73bbf6c3d5af60728470652fd96816e95296947f807dc3bc91630",
       "label": "createMessageRouter()",
-      "last": "2026-09-05T06:10:32.676107+00:00",
+      "last": "2026-09-05T06:23:44.229242+00:00",
+      "neg": 1,
       "provenance": [
+        {
+          "date": "2026-09-05T06:23:44.229242+00:00",
+          "outcome": "useful",
+          "q": "Add a production-ready /remove-bg command with a handler, media service, swappable background-removal service, secure API key, cleanup, error handling, and high-quality PNG document output; recommend tooling and directory structure first, then wait for confirmation."
+        },
+        {
+          "date": "2026-09-05T06:14:56.347690+00:00",
+          "outcome": "corrected",
+          "q": "Image sticker download failed at Message.getQuotedMessage with r: r"
+        },
         {
           "date": "2026-09-05T06:10:32.676107+00:00",
           "outcome": "useful",
@@ -243,22 +258,13 @@
           "date": "2026-09-05T05:59:21.538016+00:00",
           "outcome": "useful",
           "q": "Image sticker generation failed: r"
-        },
-        {
-          "date": "2026-09-05T05:51:49.698299+00:00",
-          "outcome": "useful",
-          "q": "execute! implement image sticker and prompt file"
-        },
-        {
-          "date": "2026-09-05T05:47:56.513903+00:00",
-          "outcome": "useful",
-          "q": "lanjut tambahkan fitur membuat sticker dari gambar menggunakan command /sticker lalu untuk REPLY_STYLE_PROMPT lebih baik jangan masukin .env, bikin file sendiri aja biar user bisa menuliskannya dengan enak dan lengkap. sesuaikan dengan md terlampir"
         }
       ],
-      "score": 10.989317944,
+      "score": 10.987013718,
       "source_file": "src/router.ts",
-      "status": "preferred",
-      "uses": 11
+      "status": "contested",
+      "uses": 12,
+      "verdict": "useful"
     },
     "src_router_isdirectchatid": {
       "code_fingerprint": "1dc6dfcb5cb73bbf6c3d5af60728470652fd96816e95296947f807dc3bc91630",
@@ -281,7 +287,7 @@
           "q": "gimana cara masukin id grup whatsapp juga?"
         }
       ],
-      "score": 2.994462068,
+      "score": 2.993795731,
       "source_file": "src/router.ts",
       "status": "preferred",
       "uses": 3
@@ -297,7 +303,7 @@
           "q": "hanya saat di-mention saja. lalu ajari aku cara mendapatkan id group nya"
         }
       ],
-      "score": 0.998117057,
+      "score": 0.997894953,
       "source_file": "src/whatsapp.ts",
       "status": "tentative",
       "uses": 1

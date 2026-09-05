@@ -16,6 +16,7 @@ command are ignored before the AI service is called.
 - Google Chrome
 - A WhatsApp account
 - A Gemini API key from Google AI Studio
+- A PhotoRoom API key for `/remove-bg`
 
 ## Setup
 
@@ -29,6 +30,7 @@ Edit `.env`:
 ```dotenv
 GEMINI_API_KEY=your_real_api_key
 GEMINI_MODEL=gemini-3.5-flash-lite
+PHOTOROOM_API_KEY=your_photoroom_api_key
 TARGET_PHONE_NUMBERS=["628123456789","628987654321"]
 TARGET_GROUP_IDS=["120363000000000000@g.us"]
 ```
@@ -59,6 +61,20 @@ Generate a text sticker with:
 
 Text must be quoted and is limited to 160 characters and 10 explicit lines.
 Line breaks inside the quotes are preserved; other text wraps automatically.
+
+### Remove background command
+
+Inside a whitelisted group, send an image with `/remove-bg` as its caption, or
+reply to an existing image with:
+
+```text
+/remove-bg
+```
+
+The bot accepts JPG, PNG, WebP, and HEIC images up to 50 MB. The transparent
+PNG result is returned as a document to preserve its quality. Processing uses
+in-memory buffers only; no temporary image is written to disk. HTTP `429`
+responses are reported without an automatic retry.
 
 ## Verify and run
 

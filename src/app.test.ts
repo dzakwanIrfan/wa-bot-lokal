@@ -7,7 +7,9 @@ import {
   parseTargetPhoneNumbers,
 } from "./config.js";
 import { buildSystemInstruction, withTransientRetry } from "./gemini.js";
+import { imageMediaFromCommand } from "./media.js";
 import { createConversationMemory } from "./memory.js";
+import { createRemoveBackgroundCommand } from "./remove-bg-handler.js";
 import {
   commandNameFromText,
   createMessageRouter,
@@ -19,9 +21,12 @@ import {
 } from "./router.js";
 import {
   createImageStickerCommand,
-  imageMediaFromCommand,
   parseTextStickerCommand,
 } from "./sticker.js";
+import {
+  BackgroundRemovalError,
+  removeBackground,
+} from "./bg-removal.js";
 
 test("routing is fail-closed and memory remains bounded", async () => {
   const targets = parseTargetPhoneNumbers('["+628123456789"]');
@@ -101,6 +106,7 @@ test("custom writing style extends the trusted system instruction", () => {
 
   const config = loadConfig({
     GEMINI_API_KEY: "test-key",
+    PHOTOROOM_API_KEY: "photoroom-test-key",
     TARGET_PHONE_NUMBERS: '["628123456789"]',
     REPLY_STYLE_PROMPT: "this env value must be ignored",
   });
@@ -124,6 +130,7 @@ test("text sticker command is quoted, bounded, and routes without a mention", as
 
   let textCalls = 0;
   let imageCalls = 0;
+  let removeBackgroundCalls = 0;
   const groupId = "120363022657003836@g.us";
   const routeMessage = createMessageRouter({
     targetPhoneNumbers: new Set(),
@@ -145,6 +152,12 @@ test("text sticker command is quoted, bounded, and routes without a mention", as
         "/sticker",
         async () => {
           imageCalls += 1;
+        },
+      ],
+      [
+        "/remove-bg",
+        async () => {
+          removeBackgroundCalls += 1;
         },
       ],
     ]),
@@ -177,14 +190,23 @@ test("text sticker command is quoted, bounded, and routes without a mention", as
 
   await routeMessage({
     ...message,
+    type: "image",
+    body: "/remove-bg",
+    hasMedia: true,
+  } as never);
+  assert.equal(removeBackgroundCalls, 1);
+
+  await routeMessage({
+    ...message,
     from: "120363999999999999@g.us",
     id: { remote: "120363999999999999@g.us" },
   } as never);
   assert.equal(textCalls, 1);
   assert.equal(imageCalls, 1);
+  assert.equal(removeBackgroundCalls, 1);
 });
 
-test("image sticker accepts an attached image or a quoted image", async () => {
+test("image commands accept an attached image or a quoted image", async () => {
   type RuntimeMessageId = {
     fromMe: boolean;
     remote: string;
@@ -276,4 +298,95 @@ test("image sticker accepts an attached image or a quoted image", async () => {
   } as never);
   assert.equal(sentAsSticker, true);
   assert.equal(sentMimetype, "image/webp");
+});
+
+test("PhotoRoom returns a PNG once and does not retry HTTP 429", async () => {
+  const input = {
+    mimetype: "image/jpeg",
+    data: Buffer.from("jpeg-source").toString("base64"),
+  };
+  const png = Uint8Array.from([137, 80, 78, 71, 13, 10, 26, 10, 1]);
+  let successCalls = 0;
+
+  const result = await removeBackground(input, "secret-key", async (url, init) => {
+    successCalls += 1;
+    assert.equal(String(url), "https://sdk.photoroom.com/v1/segment");
+    assert.equal(init?.method, "POST");
+    assert.equal(new Headers(init?.headers).get("x-api-key"), "secret-key");
+    assert.ok(init?.body instanceof FormData);
+    return new Response(png, { status: 200, headers: { "content-type": "image/png" } });
+  });
+
+  assert.deepEqual(result, png);
+  assert.equal(successCalls, 1);
+
+  let rateLimitCalls = 0;
+  await assert.rejects(
+    () =>
+      removeBackground(input, "secret-key", async () => {
+        rateLimitCalls += 1;
+        return new Response("busy", { status: 429 });
+      }),
+    (error) =>
+      error instanceof BackgroundRemovalError && error.code === "rate-limit",
+  );
+  assert.equal(rateLimitCalls, 1);
+});
+
+test("remove background accepts attached media and sends a PNG document", async () => {
+  const groupId = "120363022657003836@g.us";
+  const source = { mimetype: "image/jpeg", data: "base64-image" };
+  const replies: Array<{ content: unknown; options: unknown }> = [];
+  const message = {
+    id: {
+      fromMe: true,
+      remote: groupId,
+      id: "remove-background",
+      $1: `true_${groupId}_remove-background`,
+    },
+    body: "/remove-bg",
+    hasMedia: true,
+    hasQuotedMsg: false,
+    downloadMedia: async () => source,
+    reply: async (content: unknown, _chatId: unknown, options: unknown) => {
+      replies.push({ content, options });
+      return {};
+    },
+  };
+  const png = Uint8Array.from([137, 80, 78, 71, 13, 10, 26, 10]);
+
+  await createRemoveBackgroundCommand("secret-key", async (media, apiKey) => {
+    assert.equal(media, source);
+    assert.equal(apiKey, "secret-key");
+    return png;
+  })(message as never);
+
+  assert.equal(replies.length, 1);
+  const reply = replies[0];
+  assert.equal(Reflect.get(reply?.content as object, "mimetype"), "image/png");
+  assert.equal(
+    Reflect.get(reply?.content as object, "filename"),
+    "background-removed.png",
+  );
+  assert.equal(
+    Reflect.get(reply?.options as object, "sendMediaAsDocument"),
+    true,
+  );
+
+  const usageReplies: unknown[] = [];
+  await createRemoveBackgroundCommand("secret-key")({
+    ...message,
+    id: {
+      fromMe: true,
+      remote: groupId,
+      id: "missing-image",
+      $1: `true_${groupId}_missing-image`,
+    },
+    hasMedia: false,
+    reply: async (content: unknown) => {
+      usageReplies.push(content);
+      return {};
+    },
+  } as never);
+  assert.match(String(usageReplies[0]), /Kirim gambar/);
 });

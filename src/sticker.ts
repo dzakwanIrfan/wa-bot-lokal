@@ -5,6 +5,8 @@ import type {
   MessageMedia as MessageMediaType,
 } from "whatsapp-web.js";
 
+import { imageMediaFromCommand } from "./media.js";
+
 const { MessageMedia } = whatsapp;
 
 export const TEXT_STICKER_COMMAND = "/sticker-text";
@@ -14,22 +16,6 @@ const MAX_EXPLICIT_LINES = 10;
 const USAGE = `Format: ${TEXT_STICKER_COMMAND} "contoh tulisan"\nMaksimal ${MAX_TEXT_LENGTH} karakter dan ${MAX_EXPLICIT_LINES} baris.`;
 const IMAGE_USAGE =
   "Kirim gambar dengan caption /sticker, atau reply gambar dengan /sticker.";
-
-type CompatibleMessageId = Message["id"] & { $1?: string };
-
-function ensureSerializedMessageId(message: Message): void {
-  const id = message.id as CompatibleMessageId;
-  if (id._serialized) return;
-
-  const serialized =
-    id.$1 ??
-    (typeof id.fromMe === "boolean" && id.remote && id.id
-      ? `${id.fromMe}_${id.remote}_${id.id}`
-      : null);
-  if (!serialized) throw new Error("Message ID cannot be serialized.");
-
-  id._serialized = serialized;
-}
 
 export function parseTextStickerCommand(input: string): string | null {
   const match = input
@@ -148,24 +134,6 @@ export function createTextStickerCommand(client: Client) {
       await message.reply("Gagal membuat stiker. Coba lagi.");
     }
   };
-}
-
-export async function imageMediaFromCommand(
-  message: Message,
-): Promise<MessageMediaType | null> {
-  ensureSerializedMessageId(message);
-
-  const source = message.hasMedia
-    ? message
-    : message.hasQuotedMsg
-      ? await message.getQuotedMessage()
-      : null;
-
-  if (!source?.hasMedia) return null;
-  ensureSerializedMessageId(source);
-
-  const media = await source.downloadMedia();
-  return media?.mimetype.startsWith("image/") ? media : null;
 }
 
 export async function createImageStickerMedia(

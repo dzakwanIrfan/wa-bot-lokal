@@ -9,6 +9,7 @@ const REPLY_STYLE_PROMPT_URL = new URL(
 export type AppConfig = Readonly<{
   geminiApiKey: string;
   geminiModel: string;
+  photoroomApiKey: string;
   replyStylePrompt: string;
   targetPhoneNumbers: ReadonlySet<string>;
   targetGroupIds: ReadonlySet<string>;
@@ -90,6 +91,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
   return {
     geminiApiKey: requireEnv(env, "GEMINI_API_KEY"),
     geminiModel: env.GEMINI_MODEL?.trim() || DEFAULT_GEMINI_MODEL,
+    photoroomApiKey: requireEnv(env, "PHOTOROOM_API_KEY"),
     replyStylePrompt: loadReplyStylePrompt(),
     targetPhoneNumbers: parseTargetPhoneNumbers(
       requireEnv(env, "TARGET_PHONE_NUMBERS"),
