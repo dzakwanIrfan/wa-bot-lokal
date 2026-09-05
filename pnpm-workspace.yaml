@@ -1,0 +1,7 @@
+allowBuilds:
+  '@google/genai': false
+  protobufjs: false
+  puppeteer: false
+
+overrides:
+  'whatsapp-web.js>puppeteer': 25.10.0

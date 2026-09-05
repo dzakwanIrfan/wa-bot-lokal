@@ -1,0 +1,169 @@
+{
+  "generated_at": "2026-09-05T04:12:50.688797+00:00",
+  "nodes": {
+    "readme_environment_configuration": {
+      "code_fingerprint": "2873e95970094fac3f944ed936a6a2317a21e88c49706585fe75debcf4517e62",
+      "label": "Environment Configuration",
+      "last": "2026-09-05T04:06:03.942655+00:00",
+      "provenance": [
+        {
+          "date": "2026-09-05T04:06:03.942655+00:00",
+          "outcome": "useful",
+          "q": "Execute the approved WhatsApp writing style prompt using the attached style context document"
+        },
+        {
+          "date": "2026-09-05T03:59:39.729930+00:00",
+          "outcome": "useful",
+          "q": "Add AI prompt engineering so WhatsApp replies match the user's language and typing style"
+        },
+        {
+          "date": "2026-09-05T03:54:26.054882+00:00",
+          "outcome": "useful",
+          "q": "Why does pnpm start report Missing required environment variable TARGET_PHONE_NUMBERS?"
+        }
+      ],
+      "score": 2.999384385,
+      "source_file": "README.md",
+      "status": "preferred",
+      "uses": 3
+    },
+    "readme_whitelisted_direct_text_routing": {
+      "code_fingerprint": "2873e95970094fac3f944ed936a6a2317a21e88c49706585fe75debcf4517e62",
+      "label": "Whitelisted Direct Text Routing",
+      "last": "2026-09-05T04:09:25.333949+00:00",
+      "provenance": [
+        {
+          "date": "2026-09-05T04:09:25.333949+00:00",
+          "outcome": "useful",
+          "q": "gimana cara masukin id grup whatsapp juga?"
+        }
+      ],
+      "score": 0.999945086,
+      "source_file": "README.md",
+      "status": "tentative",
+      "uses": 1
+    },
+    "src_config_loadconfig": {
+      "code_fingerprint": "d65766255805c65d28e9add2b8b21d0b8f84103a25445fa4cbd2372ad21baa9d",
+      "label": "loadConfig()",
+      "last": "2026-09-05T04:06:03.942655+00:00",
+      "provenance": [
+        {
+          "date": "2026-09-05T04:06:03.942655+00:00",
+          "outcome": "useful",
+          "q": "Execute the approved WhatsApp writing style prompt using the attached style context document"
+        },
+        {
+          "date": "2026-09-05T03:59:39.729930+00:00",
+          "outcome": "useful",
+          "q": "Add AI prompt engineering so WhatsApp replies match the user's language and typing style"
+        },
+        {
+          "date": "2026-09-05T03:54:26.054882+00:00",
+          "outcome": "useful",
+          "q": "Why does pnpm start report Missing required environment variable TARGET_PHONE_NUMBERS?"
+        }
+      ],
+      "score": 2.999384385,
+      "source_file": "src/config.ts",
+      "status": "preferred",
+      "uses": 3
+    },
+    "src_config_parsetargetphonenumbers": {
+      "code_fingerprint": "d65766255805c65d28e9add2b8b21d0b8f84103a25445fa4cbd2372ad21baa9d",
+      "label": "parseTargetPhoneNumbers()",
+      "last": "2026-09-05T04:09:25.333949+00:00",
+      "provenance": [
+        {
+          "date": "2026-09-05T04:09:25.333949+00:00",
+          "outcome": "useful",
+          "q": "gimana cara masukin id grup whatsapp juga?"
+        },
+        {
+          "date": "2026-09-05T03:54:26.054882+00:00",
+          "outcome": "useful",
+          "q": "Why does pnpm start report Missing required environment variable TARGET_PHONE_NUMBERS?"
+        }
+      ],
+      "score": 1.999649731,
+      "source_file": "src/config.ts",
+      "status": "preferred",
+      "uses": 2
+    },
+    "src_gemini_creategeminiservice": {
+      "code_fingerprint": "58f1677c9ae5b503a502db734edc1d769718b45ebcc48bd0c4335fa69622aa79",
+      "label": "createGeminiService()",
+      "last": "2026-09-05T04:06:03.942655+00:00",
+      "provenance": [
+        {
+          "date": "2026-09-05T04:06:03.942655+00:00",
+          "outcome": "useful",
+          "q": "Execute the approved WhatsApp writing style prompt using the attached style context document"
+        },
+        {
+          "date": "2026-09-05T03:59:39.729930+00:00",
+          "outcome": "useful",
+          "q": "Add AI prompt engineering so WhatsApp replies match the user's language and typing style"
+        }
+      ],
+      "score": 1.999679741,
+      "source_file": "src/gemini.ts",
+      "status": "preferred",
+      "uses": 2
+    },
+    "src_gemini_system_instruction": {
+      "code_fingerprint": "58f1677c9ae5b503a502db734edc1d769718b45ebcc48bd0c4335fa69622aa79",
+      "label": "SYSTEM_INSTRUCTION",
+      "last": "2026-09-05T04:06:03.942655+00:00",
+      "provenance": [
+        {
+          "date": "2026-09-05T04:06:03.942655+00:00",
+          "outcome": "useful",
+          "q": "Execute the approved WhatsApp writing style prompt using the attached style context document"
+        },
+        {
+          "date": "2026-09-05T03:59:39.729930+00:00",
+          "outcome": "useful",
+          "q": "Add AI prompt engineering so WhatsApp replies match the user's language and typing style"
+        }
+      ],
+      "score": 1.999679741,
+      "source_file": "src/gemini.ts",
+      "status": "preferred",
+      "uses": 2
+    },
+    "src_router_createmessagerouter": {
+      "code_fingerprint": "253b1f7032d80e95e397ed480a6937a20305f595772a354b006ca5ecdda91290",
+      "label": "createMessageRouter()",
+      "last": "2026-09-05T04:09:25.333949+00:00",
+      "provenance": [
+        {
+          "date": "2026-09-05T04:09:25.333949+00:00",
+          "outcome": "useful",
+          "q": "gimana cara masukin id grup whatsapp juga?"
+        }
+      ],
+      "score": 0.999945086,
+      "source_file": "src/router.ts",
+      "status": "tentative",
+      "uses": 1
+    },
+    "src_router_isdirectchatid": {
+      "code_fingerprint": "253b1f7032d80e95e397ed480a6937a20305f595772a354b006ca5ecdda91290",
+      "label": "isDirectChatId()",
+      "last": "2026-09-05T04:09:25.333949+00:00",
+      "provenance": [
+        {
+          "date": "2026-09-05T04:09:25.333949+00:00",
+          "outcome": "useful",
+          "q": "gimana cara masukin id grup whatsapp juga?"
+        }
+      ],
+      "score": 0.999945086,
+      "source_file": "src/router.ts",
+      "status": "tentative",
+      "uses": 1
+    }
+  },
+  "version": 1
+}

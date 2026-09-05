@@ -1,0 +1,57 @@
+{
+  "package.json": {
+    "mtime": 1788578491.8589811,
+    "ast_hash": "daa04fd53783afc3c40015c5107bb809",
+    "semantic_hash": "daa04fd53783afc3c40015c5107bb809"
+  },
+  "src/app.test.ts": {
+    "mtime": 1788579982.1065753,
+    "ast_hash": "491286246560bcacfdc229f196ed1e14",
+    "semantic_hash": "491286246560bcacfdc229f196ed1e14"
+  },
+  "src/config.ts": {
+    "mtime": 1788577659.6665154,
+    "ast_hash": "ab4d7ab3eefe87c9eff9fce9422786d0",
+    "semantic_hash": "ab4d7ab3eefe87c9eff9fce9422786d0"
+  },
+  "src/gemini.ts": {
+    "mtime": 1788577878.68955,
+    "ast_hash": "bfa7c1d6c427f73b0610171712fbc757",
+    "semantic_hash": "bfa7c1d6c427f73b0610171712fbc757"
+  },
+  "src/index.ts": {
+    "mtime": 1788577659.6675262,
+    "ast_hash": "851d83499efc21a3135ee7d8d79de7c5",
+    "semantic_hash": "851d83499efc21a3135ee7d8d79de7c5"
+  },
+  "src/memory.ts": {
+    "mtime": 1788577659.6667366,
+    "ast_hash": "6a5c9a62c103e245b9b5bdfd3be250c9",
+    "semantic_hash": "6a5c9a62c103e245b9b5bdfd3be250c9"
+  },
+  "src/router.ts": {
+    "mtime": 1788579982.1061454,
+    "ast_hash": "296fafbd1838a816246fa749becda81e",
+    "semantic_hash": "296fafbd1838a816246fa749becda81e"
+  },
+  "src/whatsapp.ts": {
+    "mtime": 1788577971.6382055,
+    "ast_hash": "ce36962e04d2d628f79a55476f49a15d",
+    "semantic_hash": "ce36962e04d2d628f79a55476f49a15d"
+  },
+  "tsconfig.json": {
+    "mtime": 1788577659.6652246,
+    "ast_hash": "58db05e712513bc2cea6f57513b379e6",
+    "semantic_hash": "58db05e712513bc2cea6f57513b379e6"
+  },
+  "README.md": {
+    "mtime": 1788578491.8596706,
+    "ast_hash": "2078013a57894417e7173cf65f9632df",
+    "semantic_hash": "2078013a57894417e7173cf65f9632df"
+  },
+  "pnpm-workspace.yaml": {
+    "mtime": 1788578491.8592968,
+    "ast_hash": "24968293444374b5b64d8b28c62fcf24",
+    "semantic_hash": "24968293444374b5b64d8b28c62fcf24"
+  }
+}
