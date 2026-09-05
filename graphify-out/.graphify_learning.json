@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-05T09:34:28.860486+00:00",
+  "generated_at": "2026-09-05T09:53:43.799141+00:00",
   "nodes": {
     "package_scripts_start": {
       "code_fingerprint": "52b01674e56ad1513b6c3306f8742511f46905489ee009f3be001a5f199f1dd5",
@@ -12,13 +12,13 @@
           "q": "bagaimana cara menjalankannya setelah error database wa_bot does not exist"
         }
       ],
-      "score": 0.999163828,
+      "score": 0.998855283,
       "source_file": "package.json",
       "status": "tentative",
       "uses": 1
     },
     "readme_environment_configuration": {
-      "code_fingerprint": "61b9e39ad77729f7a3bf1ebc055a7fde2e1236f7c143d280e15ba239c1b59282",
+      "code_fingerprint": "0bd1f47a9d5a206ff0341ecbcbdbdba1668dd9255da0f195c0f0c1abaf0186eb",
       "label": "Environment Configuration",
       "last": "2026-09-05T08:42:20.717284+00:00",
       "provenance": [
@@ -48,13 +48,13 @@
           "q": "Execute the approved WhatsApp writing style prompt using the attached style context document"
         }
       ],
-      "score": 6.97097204,
+      "score": 6.968819379,
       "source_file": "README.md",
       "status": "preferred",
       "uses": 7
     },
     "readme_local_linked_session": {
-      "code_fingerprint": "61b9e39ad77729f7a3bf1ebc055a7fde2e1236f7c143d280e15ba239c1b59282",
+      "code_fingerprint": "0bd1f47a9d5a206ff0341ecbcbdbdba1668dd9255da0f195c0f0c1abaf0186eb",
       "label": "Local Linked WhatsApp Session",
       "last": "2026-09-05T07:07:15.187675+00:00",
       "provenance": [
@@ -64,13 +64,13 @@
           "q": "Analisis teknis dan rekomendasiku untuk setiap poin keputusan tersebut"
         }
       ],
-      "score": 0.997640506,
+      "score": 0.997332431,
       "source_file": "README.md",
       "status": "tentative",
       "uses": 1
     },
     "readme_whitelisted_direct_text_routing": {
-      "code_fingerprint": "61b9e39ad77729f7a3bf1ebc055a7fde2e1236f7c143d280e15ba239c1b59282",
+      "code_fingerprint": "0bd1f47a9d5a206ff0341ecbcbdbdba1668dd9255da0f195c0f0c1abaf0186eb",
       "label": "Whitelisted Direct Text Routing",
       "last": "2026-09-05T04:09:25.333949+00:00",
       "provenance": [
@@ -80,7 +80,7 @@
           "q": "gimana cara masukin id grup whatsapp juga?"
         }
       ],
-      "score": 0.994797986,
+      "score": 0.994490788,
       "source_file": "README.md",
       "status": "tentative",
       "uses": 1
@@ -116,7 +116,7 @@
           "q": "lanjut tambahkan fitur membuat sticker dari gambar menggunakan command /sticker lalu untuk REPLY_STYLE_PROMPT lebih baik jangan masukin .env, bikin file sendiri aja biar user bisa menuliskannya dengan enak dan lengkap. sesuaikan dengan md terlampir"
         }
       ],
-      "score": 8.964982384,
+      "score": 8.962213965,
       "source_file": "src/config.ts",
       "status": "preferred",
       "uses": 9
@@ -137,7 +137,7 @@
           "q": "Why does pnpm start report Missing required environment variable TARGET_PHONE_NUMBERS?"
         }
       ],
-      "score": 1.989356768,
+      "score": 1.988742447,
       "source_file": "src/config.ts",
       "status": "preferred",
       "uses": 2
@@ -158,7 +158,7 @@
           "q": "Add AI prompt engineering so WhatsApp replies match the user's language and typing style"
         }
       ],
-      "score": 1.989386623,
+      "score": 1.988772293,
       "source_file": "src/gemini.ts",
       "status": "preferred",
       "uses": 2
@@ -179,7 +179,7 @@
           "q": "Add AI prompt engineering so WhatsApp replies match the user's language and typing style"
         }
       ],
-      "score": 1.989386623,
+      "score": 1.988772293,
       "source_file": "src/gemini.ts",
       "status": "preferred",
       "uses": 2
@@ -187,9 +187,19 @@
     "src_index_client": {
       "code_fingerprint": "327daaa5e74f4974e01e28fe759671bab15bc583b6f8202ae657144dbe4ffa59",
       "label": "client",
-      "last": "2026-09-05T09:06:53.034730+00:00",
-      "neg": 1,
+      "last": "2026-09-05T09:43:25.950275+00:00",
+      "neg": 2,
       "provenance": [
+        {
+          "date": "2026-09-05T09:43:25.950275+00:00",
+          "outcome": "useful",
+          "q": "execute! perbaiki routing pesan akun tertaut; konteks: aku testing di whatsapp macbook"
+        },
+        {
+          "date": "2026-09-05T09:40:41.220796+00:00",
+          "outcome": "corrected",
+          "q": "masih belum mau jawab pertanyaanku; pesan anggota lain diproses tetapi jawaban Dzakwan dari akun tertaut tidak diterima"
+        },
         {
           "date": "2026-09-05T09:06:53.034730+00:00",
           "outcome": "useful",
@@ -204,22 +214,12 @@
           "date": "2026-09-05T06:14:56.347690+00:00",
           "outcome": "corrected",
           "q": "Image sticker download failed at Message.getQuotedMessage with r: r"
-        },
-        {
-          "date": "2026-09-05T06:10:32.676107+00:00",
-          "outcome": "useful",
-          "q": "masih error"
-        },
-        {
-          "date": "2026-09-05T06:07:58.490416+00:00",
-          "outcome": "useful",
-          "q": "execute! perbaiki image sticker"
         }
       ],
-      "score": 10.960849612,
+      "score": 10.957508906,
       "source_file": "src/index.ts",
       "status": "contested",
-      "uses": 12,
+      "uses": 13,
       "verdict": "useful"
     },
     "src_index_gemini": {
@@ -233,7 +233,7 @@
           "q": "execute! selesaikan semuanya!"
         }
       ],
-      "score": 0.998963394,
+      "score": 0.998654911,
       "source_file": "src/index.ts",
       "status": "tentative",
       "uses": 1
@@ -249,13 +249,36 @@
           "q": "Design Phase 1 architecture and precise PostgreSQL schema for a high-concurrency multiplayer WhatsApp quiz with First Blood, strict and chaos modes, boss raids, generated question batches, seasons, and leaderboard locking."
         }
       ],
-      "score": 0.997511289,
+      "score": 0.997203254,
       "source_file": "src/memory.ts",
       "status": "tentative",
       "uses": 1
     },
+    "src_router": {
+      "code_fingerprint": "f6dbd25ab7431395d4090eef93739551398798ead212ee705aa73517f95289bf",
+      "label": "router.ts",
+      "last": "2026-09-05T09:43:25.950275+00:00",
+      "neg": 1,
+      "provenance": [
+        {
+          "date": "2026-09-05T09:43:25.950275+00:00",
+          "outcome": "useful",
+          "q": "execute! perbaiki routing pesan akun tertaut; konteks: aku testing di whatsapp macbook"
+        },
+        {
+          "date": "2026-09-05T09:40:41.220796+00:00",
+          "outcome": "corrected",
+          "q": "masih belum mau jawab pertanyaanku; pesan anggota lain diproses tetapi jawaban Dzakwan dari akun tertaut tidak diterima"
+        }
+      ],
+      "score": 4.4043e-05,
+      "source_file": "src/router.ts",
+      "status": "contested",
+      "uses": 1,
+      "verdict": "useful"
+    },
     "src_router_commandhandler": {
-      "code_fingerprint": "6d2376ac504862b1bf45302f02821c17a9c78891461fa8faa82377d9820a3a06",
+      "code_fingerprint": "f6dbd25ab7431395d4090eef93739551398798ead212ee705aa73517f95289bf",
       "label": "CommandHandler",
       "last": "2026-09-05T09:06:53.034730+00:00",
       "neg": 1,
@@ -286,14 +309,14 @@
           "q": "execute! continue!"
         }
       ],
-      "score": 15.955961385,
+      "score": 15.951034127,
       "source_file": "src/router.ts",
       "status": "contested",
       "uses": 17,
       "verdict": "useful"
     },
     "src_router_createmessagerouter": {
-      "code_fingerprint": "6d2376ac504862b1bf45302f02821c17a9c78891461fa8faa82377d9820a3a06",
+      "code_fingerprint": "f6dbd25ab7431395d4090eef93739551398798ead212ee705aa73517f95289bf",
       "label": "createMessageRouter()",
       "last": "2026-09-05T08:50:53.091506+00:00",
       "neg": 1,
@@ -324,14 +347,14 @@
           "q": "Analisis teknis dan rekomendasiku untuk setiap poin keputusan tersebut"
         }
       ],
-      "score": 17.941131522,
+      "score": 17.935591236,
       "source_file": "src/router.ts",
       "status": "contested",
       "uses": 19,
       "verdict": "useful"
     },
     "src_router_isdirectchatid": {
-      "code_fingerprint": "6d2376ac504862b1bf45302f02821c17a9c78891461fa8faa82377d9820a3a06",
+      "code_fingerprint": "f6dbd25ab7431395d4090eef93739551398798ead212ee705aa73517f95289bf",
       "label": "isDirectChatId()",
       "last": "2026-09-05T04:25:39.415164+00:00",
       "provenance": [
@@ -351,7 +374,7 @@
           "q": "gimana cara masukin id grup whatsapp juga?"
         }
       ],
-      "score": 2.984727437,
+      "score": 2.983805742,
       "source_file": "src/router.ts",
       "status": "preferred",
       "uses": 3
@@ -359,8 +382,19 @@
     "src_whatsapp": {
       "code_fingerprint": "426f04e7482fbff25e0660617007ca1798601e52673443215305aaa2d88518cc",
       "label": "whatsapp.ts",
-      "last": "2026-09-05T09:06:53.034730+00:00",
+      "last": "2026-09-05T09:43:25.950275+00:00",
+      "neg": 1,
       "provenance": [
+        {
+          "date": "2026-09-05T09:43:25.950275+00:00",
+          "outcome": "useful",
+          "q": "execute! perbaiki routing pesan akun tertaut; konteks: aku testing di whatsapp macbook"
+        },
+        {
+          "date": "2026-09-05T09:40:41.220796+00:00",
+          "outcome": "corrected",
+          "q": "masih belum mau jawab pertanyaanku; pesan anggota lain diproses tetapi jawaban Dzakwan dari akun tertaut tidak diterima"
+        },
         {
           "date": "2026-09-05T09:06:53.034730+00:00",
           "outcome": "useful",
@@ -375,22 +409,13 @@
           "date": "2026-09-05T08:29:50.497586+00:00",
           "outcome": "useful",
           "q": "execute! selesaikan semuanya!"
-        },
-        {
-          "date": "2026-09-05T08:09:54.033041+00:00",
-          "outcome": "useful",
-          "q": "execute! Phase 2 First Blood concurrency"
-        },
-        {
-          "date": "2026-09-05T07:46:40.995438+00:00",
-          "outcome": "useful",
-          "q": "execute! continue!"
         }
       ],
-      "score": 5.992377634,
+      "score": 5.99057121,
       "source_file": "src/whatsapp.ts",
-      "status": "preferred",
-      "uses": 6
+      "status": "contested",
+      "uses": 7,
+      "verdict": "useful"
     },
     "src_whatsapp_createwhatsappclient": {
       "code_fingerprint": "426f04e7482fbff25e0660617007ca1798601e52673443215305aaa2d88518cc",
@@ -403,7 +428,7 @@
           "q": "hanya saat di-mention saja. lalu ajari aku cara mendapatkan id group nya"
         }
       ],
-      "score": 0.9948723,
+      "score": 0.99456508,
       "source_file": "src/whatsapp.ts",
       "status": "tentative",
       "uses": 1
