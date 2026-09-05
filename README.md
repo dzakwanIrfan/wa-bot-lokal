@@ -40,6 +40,19 @@ appended to the trusted Gemini system instruction, separate from chat content.
 `TARGET_GROUP_IDS` is optional; each ID must end in `@g.us`. The bot only replies
 inside those groups when its linked WhatsApp account is explicitly mentioned.
 
+### Text sticker command
+
+Inside a whitelisted group, any participant (including the linked account) can
+generate a text sticker without mentioning the bot:
+
+```text
+/sticker-text "sori keburu ngambek"
+```
+
+Text must be quoted and is limited to 160 characters and 10 explicit lines.
+Line breaks inside the quotes are preserved; other text wraps automatically.
+The `/sticker` command remains unused for a future image-to-sticker feature.
+
 ## Verify and run
 
 ```bash

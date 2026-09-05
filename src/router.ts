@@ -23,7 +23,7 @@ type RouterDependencies = Readonly<{
   targetGroupIds: ReadonlySet<string>;
   memory: ConversationMemory;
   gemini: GeminiService;
-  commands?: ReadonlyMap<string, CommandHandler>;
+  groupCommands?: ReadonlyMap<string, CommandHandler>;
 }>;
 
 export function shouldRouteMessage(
@@ -68,6 +68,12 @@ export function shouldRouteGroupMessage(
   );
 }
 
+export function commandNameFromText(text: string): string | null {
+  return (
+    text.trim().match(/^(\/[a-z0-9-]+)(?:\s|$)/i)?.[1]?.toLowerCase() ?? null
+  );
+}
+
 function safePhoneNumber(value: string): string | null {
   try {
     return normalizePhoneNumber(value);
@@ -94,11 +100,14 @@ export function createMessageRouter({
   targetGroupIds,
   memory,
   gemini,
-  commands = new Map(),
+  groupCommands = new Map(),
 }: RouterDependencies) {
   const queues = new Map<string, Promise<void>>();
 
-  function enqueue(conversationId: string, task: () => Promise<void>): Promise<void> {
+  function enqueue(
+    conversationId: string,
+    task: () => Promise<void>,
+  ): Promise<void> {
     const previous = queues.get(conversationId) ?? Promise.resolve();
     const current = previous.catch(() => undefined).then(task);
     queues.set(conversationId, current);
@@ -110,7 +119,6 @@ export function createMessageRouter({
 
   return async function routeMessage(message: Message): Promise<void> {
     if (
-      message.fromMe ||
       message.isStatus ||
       message.broadcast ||
       message.type !== "chat"
@@ -119,7 +127,7 @@ export function createMessageRouter({
     }
 
     try {
-      const chatId = message.from || message.id.remote;
+      const chatId = message.id.remote || message.from;
       const text = message.body.trim();
       if (!text) return;
 
@@ -127,9 +135,17 @@ export function createMessageRouter({
       let memoryText = text;
 
       if (isGroupChatId(chatId)) {
-        if (!targetGroupIds.has(chatId) || message.mentionedIds.length === 0) {
+        if (!targetGroupIds.has(chatId)) return;
+
+        const commandName = commandNameFromText(text);
+        const command = commandName ? groupCommands.get(commandName) : undefined;
+        if (command) {
+          await enqueue(chatId, () => command(message, chatId));
           return;
         }
+
+        if (message.fromMe) return;
+        if (message.mentionedIds.length === 0) return;
 
         const isBotMentioned = (await message.getMentions()).some(
           (contact) => contact.isMe,
@@ -143,6 +159,8 @@ export function createMessageRouter({
         conversationId = chatId;
         memoryText = `${senderName}: ${text}`;
       } else {
+        if (message.fromMe) return;
+
         const isDirectChat = isDirectChatId(chatId, message.author);
         if (!isDirectChat) return;
 
@@ -173,12 +191,6 @@ export function createMessageRouter({
       }
 
       await enqueue(conversationId, async () => {
-        const command = commands.get(text.toLowerCase());
-        if (command) {
-          await command(message, conversationId);
-          return;
-        }
-
         memory.add(conversationId, { role: "user", text: memoryText });
 
         try {

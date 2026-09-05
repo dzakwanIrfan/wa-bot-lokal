@@ -2,6 +2,10 @@ import { loadConfig } from "./config.js";
 import { createGeminiService } from "./gemini.js";
 import { createConversationMemory } from "./memory.js";
 import { createMessageRouter } from "./router.js";
+import {
+  createTextStickerCommand,
+  TEXT_STICKER_COMMAND,
+} from "./sticker.js";
 import { createWhatsAppClient } from "./whatsapp.js";
 
 const config = loadConfig();
@@ -17,9 +21,12 @@ const routeMessage = createMessageRouter({
   targetGroupIds: config.targetGroupIds,
   memory,
   gemini,
+  groupCommands: new Map([
+    [TEXT_STICKER_COMMAND, createTextStickerCommand(client)],
+  ]),
 });
 
-client.on("message", (message) => void routeMessage(message));
+client.on("message_create", (message) => void routeMessage(message));
 
 async function shutdown(): Promise<void> {
   console.log("Stopping WhatsApp bot...");
