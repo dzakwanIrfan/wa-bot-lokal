@@ -5,6 +5,7 @@ export type AppConfig = Readonly<{
   geminiModel: string;
   replyStylePrompt: string;
   targetPhoneNumbers: ReadonlySet<string>;
+  targetGroupIds: ReadonlySet<string>;
 }>;
 
 function requireEnv(env: NodeJS.ProcessEnv, name: string): string {
@@ -25,24 +26,52 @@ export function normalizePhoneNumber(value: string): string {
   return normalized;
 }
 
-export function parseTargetPhoneNumbers(raw: string): ReadonlySet<string> {
+function parseStringArray(
+  raw: string,
+  name: string,
+  allowEmpty = false,
+): string[] {
   let values: unknown;
 
   try {
     values = JSON.parse(raw);
   } catch {
-    throw new Error("TARGET_PHONE_NUMBERS must be a JSON array of strings.");
+    throw new Error(`${name} must be a JSON array of strings.`);
   }
 
   if (
     !Array.isArray(values) ||
-    values.length === 0 ||
+    (!allowEmpty && values.length === 0) ||
     values.some((value) => typeof value !== "string")
   ) {
-    throw new Error("TARGET_PHONE_NUMBERS must be a non-empty JSON array of strings.");
+    throw new Error(
+      `${name} must be a${allowEmpty ? "" : " non-empty"} JSON array of strings.`,
+    );
   }
 
-  return new Set(values.map(normalizePhoneNumber));
+  return values;
+}
+
+export function parseTargetPhoneNumbers(raw: string): ReadonlySet<string> {
+  return new Set(
+    parseStringArray(raw, "TARGET_PHONE_NUMBERS").map(normalizePhoneNumber),
+  );
+}
+
+export function normalizeGroupId(value: string): string {
+  const normalized = value.trim();
+  if (!/^\d+(?:-\d+)?@g\.us$/.test(normalized)) {
+    throw new Error(
+      `Invalid group ID "${value}". Use the WhatsApp format 120363000000000000@g.us.`,
+    );
+  }
+  return normalized;
+}
+
+export function parseTargetGroupIds(raw: string): ReadonlySet<string> {
+  return new Set(
+    parseStringArray(raw, "TARGET_GROUP_IDS", true).map(normalizeGroupId),
+  );
 }
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
@@ -53,5 +82,6 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     targetPhoneNumbers: parseTargetPhoneNumbers(
       requireEnv(env, "TARGET_PHONE_NUMBERS"),
     ),
+    targetGroupIds: parseTargetGroupIds(env.TARGET_GROUP_IDS?.trim() || "[]"),
   };
 }

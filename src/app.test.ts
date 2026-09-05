@@ -1,12 +1,17 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { parseTargetPhoneNumbers } from "./config.js";
+import {
+  parseTargetGroupIds,
+  parseTargetPhoneNumbers,
+} from "./config.js";
 import { buildSystemInstruction, withTransientRetry } from "./gemini.js";
 import { createConversationMemory } from "./memory.js";
 import {
   isDirectChatId,
+  isGroupChatId,
   phoneNumberFromContactId,
+  shouldRouteGroupMessage,
   shouldRouteMessage,
 } from "./router.js";
 
@@ -39,6 +44,23 @@ test("routing is fail-closed and memory remains bounded", async () => {
     "628123456789",
   );
   assert.equal(phoneNumberFromContactId("123456789", "lid"), null);
+
+  const groups = parseTargetGroupIds('["120363022657003836@g.us"]');
+  assert.equal(isGroupChatId("120363022657003836@g.us"), true);
+  assert.equal(isGroupChatId("628123456789@c.us"), false);
+  assert.equal(
+    shouldRouteGroupMessage("120363022657003836@g.us", true, groups),
+    true,
+  );
+  assert.equal(
+    shouldRouteGroupMessage("120363022657003836@g.us", false, groups),
+    false,
+  );
+  assert.equal(
+    shouldRouteGroupMessage("120363999999999999@g.us", true, groups),
+    false,
+  );
+  assert.throws(() => parseTargetGroupIds('["not-a-group"]'), /Invalid group ID/);
 
   const memory = createConversationMemory(2);
   memory.add("target", { role: "user", text: "one" });

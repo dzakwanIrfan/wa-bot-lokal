@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-05T04:12:50.688797+00:00",
+  "generated_at": "2026-09-05T04:21:02.083098+00:00",
   "nodes": {
     "readme_environment_configuration": {
       "code_fingerprint": "2873e95970094fac3f944ed936a6a2317a21e88c49706585fe75debcf4517e62",
@@ -22,7 +22,7 @@
           "q": "Why does pnpm start report Missing required environment variable TARGET_PHONE_NUMBERS?"
         }
       ],
-      "score": 2.999384385,
+      "score": 2.998990269,
       "source_file": "README.md",
       "status": "preferred",
       "uses": 3
@@ -38,7 +38,7 @@
           "q": "gimana cara masukin id grup whatsapp juga?"
         }
       ],
-      "score": 0.999945086,
+      "score": 0.999813694,
       "source_file": "README.md",
       "status": "tentative",
       "uses": 1
@@ -64,7 +64,7 @@
           "q": "Why does pnpm start report Missing required environment variable TARGET_PHONE_NUMBERS?"
         }
       ],
-      "score": 2.999384385,
+      "score": 2.998990269,
       "source_file": "src/config.ts",
       "status": "preferred",
       "uses": 3
@@ -85,7 +85,7 @@
           "q": "Why does pnpm start report Missing required environment variable TARGET_PHONE_NUMBERS?"
         }
       ],
-      "score": 1.999649731,
+      "score": 1.999386979,
       "source_file": "src/config.ts",
       "status": "preferred",
       "uses": 2
@@ -106,7 +106,7 @@
           "q": "Add AI prompt engineering so WhatsApp replies match the user's language and typing style"
         }
       ],
-      "score": 1.999679741,
+      "score": 1.999416985,
       "source_file": "src/gemini.ts",
       "status": "preferred",
       "uses": 2
@@ -127,40 +127,82 @@
           "q": "Add AI prompt engineering so WhatsApp replies match the user's language and typing style"
         }
       ],
-      "score": 1.999679741,
+      "score": 1.999416985,
       "source_file": "src/gemini.ts",
       "status": "preferred",
       "uses": 2
     },
+    "src_index_client": {
+      "code_fingerprint": "b5a43b573c09554a4fea121fd60fd09412fdbadabb29bf3ae64585899a2737e0",
+      "label": "client",
+      "last": "2026-09-05T04:14:04.673828+00:00",
+      "provenance": [
+        {
+          "date": "2026-09-05T04:14:04.673828+00:00",
+          "outcome": "useful",
+          "q": "hanya saat di-mention saja. lalu ajari aku cara mendapatkan id group nya"
+        }
+      ],
+      "score": 0.999888384,
+      "source_file": "src/index.ts",
+      "status": "tentative",
+      "uses": 1
+    },
     "src_router_createmessagerouter": {
       "code_fingerprint": "253b1f7032d80e95e397ed480a6937a20305f595772a354b006ca5ecdda91290",
       "label": "createMessageRouter()",
-      "last": "2026-09-05T04:09:25.333949+00:00",
+      "last": "2026-09-05T04:14:04.673828+00:00",
       "provenance": [
+        {
+          "date": "2026-09-05T04:14:04.673828+00:00",
+          "outcome": "useful",
+          "q": "hanya saat di-mention saja. lalu ajari aku cara mendapatkan id group nya"
+        },
         {
           "date": "2026-09-05T04:09:25.333949+00:00",
           "outcome": "useful",
           "q": "gimana cara masukin id grup whatsapp juga?"
         }
       ],
-      "score": 0.999945086,
+      "score": 1.999702078,
       "source_file": "src/router.ts",
-      "status": "tentative",
-      "uses": 1
+      "status": "preferred",
+      "uses": 2
     },
     "src_router_isdirectchatid": {
       "code_fingerprint": "253b1f7032d80e95e397ed480a6937a20305f595772a354b006ca5ecdda91290",
       "label": "isDirectChatId()",
-      "last": "2026-09-05T04:09:25.333949+00:00",
+      "last": "2026-09-05T04:14:04.673828+00:00",
       "provenance": [
+        {
+          "date": "2026-09-05T04:14:04.673828+00:00",
+          "outcome": "useful",
+          "q": "hanya saat di-mention saja. lalu ajari aku cara mendapatkan id group nya"
+        },
         {
           "date": "2026-09-05T04:09:25.333949+00:00",
           "outcome": "useful",
           "q": "gimana cara masukin id grup whatsapp juga?"
         }
       ],
-      "score": 0.999945086,
+      "score": 1.999702078,
       "source_file": "src/router.ts",
+      "status": "preferred",
+      "uses": 2
+    },
+    "src_whatsapp_createwhatsappclient": {
+      "code_fingerprint": "426f04e7482fbff25e0660617007ca1798601e52673443215305aaa2d88518cc",
+      "label": "createWhatsAppClient()",
+      "last": "2026-09-05T04:14:04.673828+00:00",
+      "provenance": [
+        {
+          "date": "2026-09-05T04:14:04.673828+00:00",
+          "outcome": "useful",
+          "q": "hanya saat di-mention saja. lalu ajari aku cara mendapatkan id group nya"
+        }
+      ],
+      "score": 0.999888384,
+      "source_file": "src/whatsapp.ts",
       "status": "tentative",
       "uses": 1
     }

@@ -1,8 +1,9 @@
 # Local WhatsApp Gemini Bot
 
-A local TypeScript auto-reply bot that only sends whitelisted direct text
-messages to Gemini. Group, status, broadcast, media, and non-target messages are
-ignored before the AI service is called.
+A local TypeScript auto-reply bot that sends whitelisted direct text messages
+and explicitly mentioned messages from whitelisted groups to Gemini. Status,
+broadcast, media, non-target, and unmentioned group messages are ignored before
+the AI service is called.
 
 > `whatsapp-web.js` is an unofficial WhatsApp client. Its maintainers cannot
 > guarantee that an account will not be blocked. Start with a non-critical
@@ -30,11 +31,14 @@ GEMINI_API_KEY=your_real_api_key
 GEMINI_MODEL=gemini-3.5-flash-lite
 REPLY_STYLE_PROMPT="Use concise, natural WhatsApp language."
 TARGET_PHONE_NUMBERS=["628123456789","628987654321"]
+TARGET_GROUP_IDS=["120363000000000000@g.us"]
 ```
 
 Use international phone numbers with the country code and without spaces or
 dashes. A leading `+` is accepted. `REPLY_STYLE_PROMPT` is optional and is
 appended to the trusted Gemini system instruction, separate from chat content.
+`TARGET_GROUP_IDS` is optional; each ID must end in `@g.us`. The bot only replies
+inside those groups when its linked WhatsApp account is explicitly mentioned.
 
 ## Verify and run
 
@@ -49,8 +53,9 @@ On the first run, open WhatsApp on your phone, go to **Settings > Linked
 Devices**, and scan the QR shown in Terminal. The linked session is stored in
 `.wwebjs_auth/`, so later starts normally do not require another scan.
 
-The last 12 user/model messages per target are kept in RAM and reset whenever
-the process restarts. Gemini `429` and `5xx` responses are retried after one and
-two seconds; after that the failure is logged without sending a fallback reply.
+The last 12 processed user/model messages per direct chat or group are kept in
+RAM and reset whenever the process restarts. Gemini `429` and `5xx` responses are
+retried after one and two seconds; after that the failure is logged without
+sending a fallback reply.
 
 Stop the bot with `Ctrl+C`.

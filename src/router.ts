@@ -15,11 +15,12 @@ type RouteCandidate = Readonly<{
 
 export type CommandHandler = (
   message: Message,
-  phoneNumber: string,
+  conversationId: string,
 ) => Promise<void>;
 
 type RouterDependencies = Readonly<{
   targetPhoneNumbers: ReadonlySet<string>;
+  targetGroupIds: ReadonlySet<string>;
   memory: ConversationMemory;
   gemini: GeminiService;
   commands?: ReadonlyMap<string, CommandHandler>;
@@ -51,6 +52,22 @@ export function isDirectChatId(
   );
 }
 
+export function isGroupChatId(chatId: string | undefined): chatId is string {
+  return typeof chatId === "string" && chatId.endsWith("@g.us");
+}
+
+export function shouldRouteGroupMessage(
+  groupId: string | undefined,
+  isBotMentioned: boolean,
+  targetGroupIds: ReadonlySet<string>,
+): boolean {
+  return (
+    isGroupChatId(groupId) &&
+    isBotMentioned &&
+    targetGroupIds.has(groupId)
+  );
+}
+
 function safePhoneNumber(value: string): string | null {
   try {
     return normalizePhoneNumber(value);
@@ -74,19 +91,20 @@ function errorSummary(error: unknown): string {
 
 export function createMessageRouter({
   targetPhoneNumbers,
+  targetGroupIds,
   memory,
   gemini,
   commands = new Map(),
 }: RouterDependencies) {
   const queues = new Map<string, Promise<void>>();
 
-  function enqueue(phoneNumber: string, task: () => Promise<void>): Promise<void> {
-    const previous = queues.get(phoneNumber) ?? Promise.resolve();
+  function enqueue(conversationId: string, task: () => Promise<void>): Promise<void> {
+    const previous = queues.get(conversationId) ?? Promise.resolve();
     const current = previous.catch(() => undefined).then(task);
-    queues.set(phoneNumber, current);
+    queues.set(conversationId, current);
 
     return current.finally(() => {
-      if (queues.get(phoneNumber) === current) queues.delete(phoneNumber);
+      if (queues.get(conversationId) === current) queues.delete(conversationId);
     });
   }
 
@@ -102,51 +120,74 @@ export function createMessageRouter({
 
     try {
       const chatId = message.from || message.id.remote;
-      const isDirectChat = isDirectChatId(chatId, message.author);
-      if (!isDirectChat) return;
+      const text = message.body.trim();
+      if (!text) return;
 
-      const contact = await message.getContact();
-      const phoneNumber = phoneNumberFromContactId(
-        contact.id.user,
-        contact.id.server,
-      );
+      let conversationId: string;
+      let memoryText = text;
 
-      if (
-        !shouldRouteMessage(
-          {
-            fromMe: message.fromMe,
-            isStatus: message.isStatus,
-            isBroadcast: message.broadcast,
-            isDirectChat,
-            type: message.type,
-            phoneNumber,
-          },
-          targetPhoneNumbers,
-        ) ||
-        !phoneNumber
-      ) {
-        return;
-      }
-
-      await enqueue(phoneNumber, async () => {
-        const text = message.body.trim();
-        if (!text) return;
-
-        const command = commands.get(text.toLowerCase());
-        if (command) {
-          await command(message, phoneNumber);
+      if (isGroupChatId(chatId)) {
+        if (!targetGroupIds.has(chatId) || message.mentionedIds.length === 0) {
           return;
         }
 
-        memory.add(phoneNumber, { role: "user", text });
+        const isBotMentioned = (await message.getMentions()).some(
+          (contact) => contact.isMe,
+        );
+        if (!shouldRouteGroupMessage(chatId, isBotMentioned, targetGroupIds)) {
+          return;
+        }
+
+        const sender = await message.getContact();
+        const senderName = sender.name || sender.pushname || "Group member";
+        conversationId = chatId;
+        memoryText = `${senderName}: ${text}`;
+      } else {
+        const isDirectChat = isDirectChatId(chatId, message.author);
+        if (!isDirectChat) return;
+
+        const contact = await message.getContact();
+        const phoneNumber = phoneNumberFromContactId(
+          contact.id.user,
+          contact.id.server,
+        );
+
+        if (
+          !shouldRouteMessage(
+            {
+              fromMe: message.fromMe,
+              isStatus: message.isStatus,
+              isBroadcast: message.broadcast,
+              isDirectChat,
+              type: message.type,
+              phoneNumber,
+            },
+            targetPhoneNumbers,
+          ) ||
+          !phoneNumber
+        ) {
+          return;
+        }
+
+        conversationId = phoneNumber;
+      }
+
+      await enqueue(conversationId, async () => {
+        const command = commands.get(text.toLowerCase());
+        if (command) {
+          await command(message, conversationId);
+          return;
+        }
+
+        memory.add(conversationId, { role: "user", text: memoryText });
 
         try {
-          const reply = await gemini.generateReply(memory.get(phoneNumber));
+          const reply = await gemini.generateReply(memory.get(conversationId));
           await message.reply(reply);
-          memory.add(phoneNumber, { role: "model", text: reply });
+          memory.add(conversationId, { role: "model", text: reply });
         } catch (error) {
           console.error(
-            `Auto-reply failed for ...${phoneNumber.slice(-4)}: ${errorSummary(error)}`,
+            `Auto-reply failed for ...${conversationId.split("@", 1)[0]?.slice(-4)}: ${errorSummary(error)}`,
           );
         }
       });

@@ -14,6 +14,7 @@ const gemini = createGeminiService(
 const client = createWhatsAppClient();
 const routeMessage = createMessageRouter({
   targetPhoneNumbers: config.targetPhoneNumbers,
+  targetGroupIds: config.targetGroupIds,
   memory,
   gemini,
 });

@@ -1,89 +1,112 @@
-"label": "@google/genai build script"
-"label": "@google/genai"
-"label": "@types/node"
-"label": "@types/qrcode-terminal"
-"label": "app.test.ts"
-"label": "appconfig"
-"label": "build"
-"label": "chatturn"
-"label": "check"
-"label": "client"
-"label": "commandhandler"
-"label": "compileroptions"
-"label": "config"
-"label": "config.ts"
-"label": "conversationmemory"
-"label": "createconversationmemory()"
-"label": "creategeminiservice()"
-"label": "createmessagerouter()"
-"label": "createwhatsappclient()"
-"label": "dependencies"
-"label": "dependency lifecycle script policy"
-"label": "devdependencies"
-"label": "disabled dependency build scripts"
-"label": "engines"
-"label": "environment configuration"
-"label": "errorsummary()"
-"label": "esmoduleinterop"
-"label": "forceconsistentcasinginfilenames"
-"label": "gemini retry policy"
-"label": "gemini"
-"label": "gemini.ts"
-"label": "geminiservice"
-"label": "google gemini"
-"label": "in-memory conversation context"
-"label": "include"
-"label": "index.ts"
-"label": "isdirectchatid()"
-"label": "istransient()"
-"label": "loadconfig()"
-"label": "local linked whatsapp session"
-"label": "local whatsapp gemini bot"
-"label": "memory"
-"label": "memory.ts"
-"label": "module"
-"label": "moduleresolution"
-"label": "name"
-"label": "node"
-"label": "normalizephonenumber()"
-"label": "nouncheckedindexedaccess"
-"label": "outdir"
-"label": "package.json"
-"label": "parsetargetphonenumbers()"
-"label": "pnpm verification and run workflow"
-"label": "private"
-"label": "protobufjs build script"
-"label": "puppeteer build script"
-"label": "qrcode-terminal"
-"label": "requireenv()"
-"label": "retry_delays_ms"
-"label": "rootdir"
-"label": "routecandidate"
-"label": "routemessage"
-"label": "router.ts"
-"label": "routerdependencies"
-"label": "safephonenumber()"
-"label": "scripts"
-"label": "shouldroutemessage()"
-"label": "shutdown()"
-"label": "skiplibcheck"
-"label": "sleep()"
-"label": "sourcemap"
-"label": "src/**/*.ts"
-"label": "start"
-"label": "statuscode()"
-"label": "strict"
-"label": "system_instruction"
-"label": "target"
-"label": "targeted contextual ai reply flow"
-"label": "terminal qr authentication"
-"label": "test"
-"label": "tsconfig.json"
-"label": "type"
-"label": "typescript"
-"label": "version"
-"label": "whatsapp-web.js puppeteer override"
-"label": "whatsapp-web.js"
-"label": "whatsapp.ts"
-"label": "whitelisted direct text routing"
-"label": "withtransientretry()"
+access
+and
+app
+authentication
+bot
+build
+candidate
+casing
+chat
+check
+client
+code
+command
+compiler
+config
+configuration
+consistent
+context
+conversation
+create
+delays
+dependencies
+dependency
+dev
+dir
+direct
+engines
+env
+environment
+error
+file
+force
+gemini
+genai
+google
+handler
+include
+index
+indexed
+instruction
+interop
+json
+lib
+lifecycle
+linked
+load
+local
+map
+memory
+message
+module
+name
+names
+node
+normalize
+number
+numbers
+options
+out
+override
+package
+parse
+phone
+pnpm
+policy
+private
+protobufjs
+puppeteer
+qrcode
+require
+resolution
+retry
+root
+route
+router
+routing
+run
+safe
+script
+scripts
+service
+session
+should
+shutdown
+skip
+sleep
+source
+src
+start
+status
+strict
+summary
+system
+target
+terminal
+test
+text
+transient
+tsconfig
+turn
+type
+types
+typescript
+unchecked
+verification
+version
+web
+whats
+whatsapp
+whitelisted
+with
+workflow
