@@ -17,6 +17,7 @@ command are ignored before the AI service is called.
 - A WhatsApp account
 - A Gemini API key from Google AI Studio
 - A PhotoRoom API key for `/remove-bg`
+- PostgreSQL 14 or newer for the quiz engine schema
 
 ## Setup
 
@@ -31,6 +32,7 @@ Edit `.env`:
 GEMINI_API_KEY=your_real_api_key
 GEMINI_MODEL=gemini-3.5-flash-lite
 PHOTOROOM_API_KEY=your_photoroom_api_key
+DATABASE_URL=postgresql://quiz_bot:your_password@127.0.0.1:5432/wa_bot
 TARGET_PHONE_NUMBERS=["628123456789","628987654321"]
 TARGET_GROUP_IDS=["120363000000000000@g.us"]
 ```
@@ -75,6 +77,28 @@ The bot accepts JPG, PNG, WebP, and HEIC images up to 50 MB. The transparent
 PNG result is returned as a document to preserve its quality. Processing uses
 in-memory buffers only; no temporary image is written to disk. HTTP `429`
 responses are reported without an automatic retry.
+
+## Quiz engine schema (Phase 1)
+
+The approved quiz architecture and locking contract are documented in
+[`docs/quiz-architecture.md`](docs/quiz-architecture.md). Apply the ordered
+forward-only migrations to an empty `quiz` schema:
+
+```bash
+QUIZ_DATABASE_URL="$(node --env-file=.env -p 'process.env.DATABASE_URL')"
+
+psql "$QUIZ_DATABASE_URL" -v ON_ERROR_STOP=1 \
+  -f database/migrations/001_quiz_content.sql \
+  -f database/migrations/002_quiz_runtime.sql \
+  -f database/migrations/003_quiz_scoring_outbox.sql
+
+psql "$QUIZ_DATABASE_URL" -f database/verify-quiz-schema.sql
+unset QUIZ_DATABASE_URL
+```
+
+The verification runs inside a transaction and rolls back its fixture data.
+Phase 1 does not connect WhatsApp commands to PostgreSQL; that ingress and First
+Blood evaluator belong to Phase 2.
 
 ## Verify and run
 
