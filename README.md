@@ -2,8 +2,8 @@
 
 A local TypeScript auto-reply bot that sends whitelisted direct text messages
 and explicitly mentioned messages from whitelisted groups to Gemini. Status,
-broadcast, media, non-target, and unmentioned group messages are ignored before
-the AI service is called.
+broadcast, non-target, unmentioned group messages, and media without a supported
+command are ignored before the AI service is called.
 
 > `whatsapp-web.js` is an unofficial WhatsApp client. Its maintainers cannot
 > guarantee that an account will not be blocked. Start with a non-critical
@@ -29,21 +29,29 @@ Edit `.env`:
 ```dotenv
 GEMINI_API_KEY=your_real_api_key
 GEMINI_MODEL=gemini-3.5-flash-lite
-REPLY_STYLE_PROMPT="Use concise, natural WhatsApp language."
 TARGET_PHONE_NUMBERS=["628123456789","628987654321"]
 TARGET_GROUP_IDS=["120363000000000000@g.us"]
 ```
 
 Use international phone numbers with the country code and without spaces or
-dashes. A leading `+` is accepted. `REPLY_STYLE_PROMPT` is optional and is
-appended to the trusted Gemini system instruction, separate from chat content.
+dashes. A leading `+` is accepted. Edit `prompts/reply-style.md` to customize
+the trusted Gemini writing style; the file is loaded once when the bot starts.
 `TARGET_GROUP_IDS` is optional; each ID must end in `@g.us`. The bot only replies
-inside those groups when its linked WhatsApp account is explicitly mentioned.
+to ordinary AI messages inside those groups when its linked WhatsApp account is
+explicitly mentioned. Sticker commands below do not require a mention.
 
-### Text sticker command
+### Sticker commands
 
 Inside a whitelisted group, any participant (including the linked account) can
-generate a text sticker without mentioning the bot:
+generate stickers without mentioning the bot.
+
+Send an image with `/sticker` as its caption, or reply to an existing image:
+
+```text
+/sticker
+```
+
+Generate a text sticker with:
 
 ```text
 /sticker-text "sori keburu ngambek"
@@ -51,7 +59,6 @@ generate a text sticker without mentioning the bot:
 
 Text must be quoted and is limited to 160 characters and 10 explicit lines.
 Line breaks inside the quotes are preserved; other text wraps automatically.
-The `/sticker` command remains unused for a future image-to-sticker feature.
 
 ## Verify and run
 

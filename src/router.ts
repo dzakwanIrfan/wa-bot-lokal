@@ -118,11 +118,7 @@ export function createMessageRouter({
   }
 
   return async function routeMessage(message: Message): Promise<void> {
-    if (
-      message.isStatus ||
-      message.broadcast ||
-      message.type !== "chat"
-    ) {
+    if (message.isStatus || message.broadcast) {
       return;
     }
 
@@ -144,6 +140,7 @@ export function createMessageRouter({
           return;
         }
 
+        if (message.type !== "chat") return;
         if (message.fromMe) return;
         if (message.mentionedIds.length === 0) return;
 
@@ -159,6 +156,7 @@ export function createMessageRouter({
         conversationId = chatId;
         memoryText = `${senderName}: ${text}`;
       } else {
+        if (message.type !== "chat") return;
         if (message.fromMe) return;
 
         const isDirectChat = isDirectChatId(chatId, message.author);

@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  loadConfig,
   parseTargetGroupIds,
   parseTargetPhoneNumbers,
 } from "./config.js";
@@ -16,7 +17,11 @@ import {
   shouldRouteGroupMessage,
   shouldRouteMessage,
 } from "./router.js";
-import { parseTextStickerCommand } from "./sticker.js";
+import {
+  createImageStickerCommand,
+  imageMediaFromCommand,
+  parseTextStickerCommand,
+} from "./sticker.js";
 
 test("routing is fail-closed and memory remains bounded", async () => {
   const targets = parseTargetPhoneNumbers('["+628123456789"]');
@@ -93,6 +98,14 @@ test("custom writing style extends the trusted system instruction", () => {
 
   assert.match(prompt, /Never pretend to have performed actions/);
   assert.match(prompt, /Trusted writing style:\nuse casual lowercase replies$/);
+
+  const config = loadConfig({
+    GEMINI_API_KEY: "test-key",
+    TARGET_PHONE_NUMBERS: '["628123456789"]',
+    REPLY_STYLE_PROMPT: "this env value must be ignored",
+  });
+  assert.match(config.replyStylePrompt, /bahasa Indonesia casual/);
+  assert.doesNotMatch(config.replyStylePrompt, /this env value must be ignored/);
 });
 
 test("text sticker command is quoted, bounded, and routes without a mention", async () => {
@@ -109,7 +122,8 @@ test("text sticker command is quoted, bounded, and routes without a mention", as
   );
   assert.equal(commandNameFromText('/STICKER-TEXT "test"'), "/sticker-text");
 
-  let calls = 0;
+  let textCalls = 0;
+  let imageCalls = 0;
   const groupId = "120363022657003836@g.us";
   const routeMessage = createMessageRouter({
     targetPhoneNumbers: new Set(),
@@ -124,7 +138,13 @@ test("text sticker command is quoted, bounded, and routes without a mention", as
       [
         "/sticker-text",
         async () => {
-          calls += 1;
+          textCalls += 1;
+        },
+      ],
+      [
+        "/sticker",
+        async () => {
+          imageCalls += 1;
         },
       ],
     ]),
@@ -145,12 +165,115 @@ test("text sticker command is quoted, bounded, and routes without a mention", as
   };
 
   await routeMessage(message as never);
-  assert.equal(calls, 1);
+  assert.equal(textCalls, 1);
+
+  await routeMessage({
+    ...message,
+    type: "image",
+    body: "/sticker",
+    hasMedia: true,
+  } as never);
+  assert.equal(imageCalls, 1);
 
   await routeMessage({
     ...message,
     from: "120363999999999999@g.us",
     id: { remote: "120363999999999999@g.us" },
   } as never);
-  assert.equal(calls, 1);
+  assert.equal(textCalls, 1);
+  assert.equal(imageCalls, 1);
+});
+
+test("image sticker accepts an attached image or a quoted image", async () => {
+  type RuntimeMessageId = {
+    fromMe: boolean;
+    remote: string;
+    id: string;
+    _serialized?: string;
+    $1?: string;
+  };
+
+  const jpeg = { mimetype: "image/jpeg", data: "base64-image" };
+  const groupId = "120363022657003836@g.us";
+  const renderClient = {
+    pupPage: {
+      evaluate: async () => "rendered-webp",
+    },
+  };
+  const attachedId: RuntimeMessageId = {
+    fromMe: true,
+    remote: groupId,
+    id: "attached-image",
+    $1: `true_${groupId}_attached-image`,
+  };
+  const attached = {
+    id: attachedId,
+    hasMedia: true,
+    hasQuotedMsg: false,
+    downloadMedia: async () => {
+      assert.equal(attachedId._serialized, attachedId.$1);
+      return jpeg;
+    },
+  };
+  assert.equal(await imageMediaFromCommand(attached as never), jpeg);
+
+  const commandId: RuntimeMessageId = {
+    fromMe: true,
+    remote: groupId,
+    id: "reply-command",
+    $1: `true_${groupId}_reply-command`,
+  };
+  const quotedImageId: RuntimeMessageId = {
+    fromMe: false,
+    remote: groupId,
+    id: "quoted-image",
+  };
+  const quotedImage = {
+    id: quotedImageId,
+    hasMedia: true,
+    downloadMedia: async () => {
+      assert.equal(
+        quotedImageId._serialized,
+        `false_${groupId}_quoted-image`,
+      );
+      return jpeg;
+    },
+  };
+  const quoted = {
+    id: commandId,
+    hasMedia: false,
+    hasQuotedMsg: true,
+    getQuotedMessage: async () => {
+      assert.equal(commandId._serialized, commandId.$1);
+      return quotedImage;
+    },
+  };
+  assert.equal(await imageMediaFromCommand(quoted as never), jpeg);
+
+  assert.equal(
+    await imageMediaFromCommand({
+      ...attached,
+      downloadMedia: async () => ({ mimetype: "audio/ogg", data: "audio" }),
+    } as never),
+    null,
+  );
+
+  let sentAsSticker = false;
+  let sentMimetype = "";
+  await createImageStickerCommand(renderClient as never)({
+    ...attached,
+    reply: async (content: unknown, _chatId: unknown, options: unknown) => {
+      sentMimetype =
+        typeof content === "object" && content !== null
+          ? String(Reflect.get(content, "mimetype"))
+          : "";
+      sentAsSticker =
+        typeof options === "object" &&
+        options !== null &&
+        Reflect.get(options, "sendMediaAsSticker") === true;
+      return {};
+    },
+  } as never);
+  assert.equal(sentAsSticker, true);
+  assert.equal(sentMimetype, "image/webp");
 });

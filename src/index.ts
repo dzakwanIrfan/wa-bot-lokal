@@ -3,7 +3,9 @@ import { createGeminiService } from "./gemini.js";
 import { createConversationMemory } from "./memory.js";
 import { createMessageRouter } from "./router.js";
 import {
+  createImageStickerCommand,
   createTextStickerCommand,
+  IMAGE_STICKER_COMMAND,
   TEXT_STICKER_COMMAND,
 } from "./sticker.js";
 import { createWhatsAppClient } from "./whatsapp.js";
@@ -22,6 +24,7 @@ const routeMessage = createMessageRouter({
   memory,
   gemini,
   groupCommands: new Map([
+    [IMAGE_STICKER_COMMAND, createImageStickerCommand(client)],
     [TEXT_STICKER_COMMAND, createTextStickerCommand(client)],
   ]),
 });

@@ -1,4 +1,10 @@
+import { readFileSync } from "node:fs";
+
 const DEFAULT_GEMINI_MODEL = "gemini-3.5-flash-lite";
+const REPLY_STYLE_PROMPT_URL = new URL(
+  "../prompts/reply-style.md",
+  import.meta.url,
+);
 
 export type AppConfig = Readonly<{
   geminiApiKey: string;
@@ -14,6 +20,12 @@ function requireEnv(env: NodeJS.ProcessEnv, name: string): string {
     throw new Error(`Missing required environment variable: ${name}`);
   }
   return value;
+}
+
+export function loadReplyStylePrompt(): string {
+  const prompt = readFileSync(REPLY_STYLE_PROMPT_URL, "utf8").trim();
+  if (!prompt) throw new Error("prompts/reply-style.md must not be empty.");
+  return prompt;
 }
 
 export function normalizePhoneNumber(value: string): string {
@@ -78,7 +90,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
   return {
     geminiApiKey: requireEnv(env, "GEMINI_API_KEY"),
     geminiModel: env.GEMINI_MODEL?.trim() || DEFAULT_GEMINI_MODEL,
-    replyStylePrompt: env.REPLY_STYLE_PROMPT?.trim() || "",
+    replyStylePrompt: loadReplyStylePrompt(),
     targetPhoneNumbers: parseTargetPhoneNumbers(
       requireEnv(env, "TARGET_PHONE_NUMBERS"),
     ),
